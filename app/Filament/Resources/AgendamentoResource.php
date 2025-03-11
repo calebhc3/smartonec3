@@ -19,6 +19,9 @@ use Filament\Tables\Table; // Certifique-se de que esta importação está prese
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\TextInput;
+use App\Imports\AgendamentosImport;
+use Illuminate\Support\Facades\Log;
+use Filament\Notifications\Notification;  // Correct import
 
 class AgendamentoResource extends Resource
 {
@@ -223,18 +226,29 @@ class AgendamentoResource extends Resource
                     ->query(fn (Builder $query, array $data) => self::applyDataExameFilter($query, $data)),
                 SelectFilter::make('sla')->options(self::getSlaOptions())->label('SLA'),
             ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
             ->headerActions([
-            Tables\Actions\Action::make('importar')
+                Tables\Actions\Action::make('importar')
                 ->label('Importar Agendamentos')
                 ->action(function ($data) {
                     try {
+                        // Ensure the file is passed correctly and the import is handled
                         Excel::import(new AgendamentosImport, $data['arquivo']);
+            
+                        // Success notification
                         Notification::make()
                             ->title('Importação concluída')
                             ->success()
                             ->send();
                     } catch (\Exception $e) {
+                        // Log the error for debugging
                         Log::error('Erro na importação: ' . $e->getMessage());
+            
+                        // Failure notification
                         Notification::make()
                             ->title('Erro na importação')
                             ->body('Ocorreu um erro ao importar o arquivo. Verifique o formato e tente novamente.')
