@@ -51,7 +51,7 @@ return [
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => 'utf8', // alterado de utf8mb4 para utf8
+            'charset' => 'utf8',  // Mudar de utf8mb4 para utf8
             'collation' => 'utf8_unicode_ci',
             'prefix_indexes' => true,
             'strict' => true,
