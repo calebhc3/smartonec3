@@ -18,6 +18,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
+use App\Filament\Pages\WelcomePage;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,19 +29,27 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->default()
             ->registration()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => '#0097A7', // Azul Esverdeado
+                // Cor Secundária
+                'secondary' => '#6A1B9A', // Roxo
+                // Cor Neutra
+                'neutral' => '#283593', // Azul Escuro
+                // Cor de Fundo
+                'background' => '#FFFFFF', // Branco
+                // Cor Secundária Clara
+                'secondary-light' => '#E0E0E0', // Cinza Claro
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                WelcomePage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                //
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -53,7 +62,9 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->plugin(FilamentAccessManagementPanel::make())
+            ->plugins([
+                FilamentAccessManagementPanel::make()
+            ])
             ->authMiddleware([
                 Authenticate::class,
                 'verified', // Adiciona esta linha para exigir que o usuário tenha o e-mail verificado
