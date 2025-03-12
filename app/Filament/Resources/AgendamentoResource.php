@@ -226,6 +226,9 @@ class AgendamentoResource extends Resource
                     ->query(fn (Builder $query, array $data) => self::applyDataExameFilter($query, $data)),
                 SelectFilter::make('sla')->options(self::getSlaOptions())->label('SLA'),
             ])
+            ->bulkActions([
+                Tables\Actions\DeleteBulkAction::make(), // Ação de deletar em massa
+            ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -233,35 +236,46 @@ class AgendamentoResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
-                ->label('Importar Agendamentos')
-                ->action(function ($data) {
-                    try {
-                        // Ensure the file is passed correctly and the import is handled
-                        Excel::import(new AgendamentosImport, $data['arquivo']);
+                    ->label('Importar Agendamentos')
+                    ->form([
+                        Forms\Components\FileUpload::make('arquivo')
+                            ->label('Arquivo Excel')
+                            ->disk('public') // Salva em storage/app/public
+                            ->directory('uploads') // Salva os arquivos dentro de storage/app/public/uploads
+                            ->acceptedFileTypes([
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'application/vnd.ms-excel'
+                            ]) // Apenas arquivos Excel
+                            ->required(),
+                    ])
+                    ->action(function ($data) {
+                        try {
+                            // Obtém o caminho correto do arquivo sem incluir "public/"
+                            $filePath = storage_path('app/public/' . $data['arquivo']);
             
-                        // Success notification
-                        Notification::make()
-                            ->title('Importação concluída')
-                            ->success()
-                            ->send();
-                    } catch (\Exception $e) {
-                        // Log the error for debugging
-                        Log::error('Erro na importação: ' . $e->getMessage());
+                            // Verifica se o arquivo realmente existe
+                            if (!file_exists($filePath)) {
+                                throw new \Exception("Arquivo não encontrado: {$filePath}");
+                            }
             
-                        // Failure notification
-                        Notification::make()
-                            ->title('Erro na importação')
-                            ->body('Ocorreu um erro ao importar o arquivo. Verifique o formato e tente novamente.')
-                            ->danger()
-                            ->send();
-                    }
-                })
-                ->form([
-                    \Filament\Forms\Components\FileUpload::make('arquivo')
-                        ->label('Arquivo Excel')
-                        ->required()
-                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
-                ]),
+                            // Importa o arquivo Excel
+                            Excel::import(new AgendamentosImport, $filePath);
+            
+                            // Notificação de sucesso
+                            Notification::make()
+                                ->title('Importação concluída')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Log::error('Erro na importação: ' . $e->getMessage());
+            
+                            Notification::make()
+                                ->title('Erro na importação')
+                                ->body('Erro: ' . $e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),      
                 Tables\Actions\Action::make('export')
                     ->label('Exportar para Excel')
                     ->icon('heroicon-m-inbox')
