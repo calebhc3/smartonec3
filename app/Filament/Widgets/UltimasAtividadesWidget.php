@@ -20,7 +20,6 @@ class UltimasAtividadesWidget extends TableWidget
     {
         return Audit::query()
             ->where('auditable_type', 'App\Models\Agendamento')
-            ->whereRaw('MOD(id, 2) = 1') // Filtra para exibir apenas registros com id ímpar
             ->orderBy('created_at', 'desc')
             ->limit(10);
     }

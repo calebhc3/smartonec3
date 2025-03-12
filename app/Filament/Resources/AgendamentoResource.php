@@ -186,6 +186,7 @@ class AgendamentoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->query(Agendamento::query()) // Mantém a query base
             ->columns([
                 Tables\Columns\TextColumn::make('empresa.nome'),
                 Tables\Columns\TextColumn::make('nome_funcionario'),
@@ -212,6 +213,23 @@ class AgendamentoResource extends Resource
                     ]),
             ])
             ->filters([
+                Tables\Filters\Filter::make('buscar')
+                ->form([
+                    Forms\Components\TextInput::make('search')
+                        ->label('Nome ou CPF')
+                        ->placeholder('Digite o nome ou CPF...')
+                        ->debounce(500), // Pequeno delay para evitar múltiplas requisições
+                ])
+                ->query(function (Builder $query, array $data) {
+                    if (!empty($data['search'])) {
+                        $searchTerm = $data['search'];
+                        return $query->where(function ($query) use ($searchTerm) {
+                            $query->where('nome_funcionario', 'like', "%{$searchTerm}%")
+                                  ->orWhere('doc_identificacao_cpf', 'like', "%{$searchTerm}%");
+                        });
+                    }
+                    return $query;
+                }),
                 Filter::make('ano_registro')
                     ->form([Forms\Components\Select::make('ano')->options(self::getAnosRegistro())])
                     ->query(fn (Builder $query, array $data) => self::applyAnoRegistroFilter($query, $data)),

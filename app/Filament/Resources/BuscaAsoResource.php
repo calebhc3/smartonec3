@@ -48,6 +48,7 @@ class BuscaAsoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->query(Agendamento::query()) // Mantém a query base
         ->columns([
             Tables\Columns\TextColumn::make('empresa.nome'),
             Tables\Columns\TextColumn::make('unidade.nome'),
@@ -60,24 +61,36 @@ class BuscaAsoResource extends Resource
             Tables\Columns\TextColumn::make('data_exame')->date(),
             Tables\Columns\TextColumn::make('sla')
             ->label('SLA'),
-            Tables\Columns\BadgeColumn::make('status')
-                ->label('Status')
-                ->formatStateUsing(fn ($state) => match ($state) {
-                    'agendado' => 'Agendado',
-                    'cancelado' => 'Cancelado',
-                    'ASO ok' => 'ASO OK',
-                    'ASO enviado' => 'ASO Enviado',
-                    'não compareceu' => 'Não Compareceu',
-                    default => 'Desconhecido',
-                })
-                ->colors([
-                    'warning' => 'agendado',
-                    'danger' => 'cancelado',
-                    'success' => 'ASO ok',
-                    'info' => 'ASO enviado',
-                    'gray' => 'não compareceu',
-                ])
-                ->sortable(),
+            Tables\Columns\TextColumn::make('status')
+            ->label('Status')
+            ->sortable()
+            ->formatStateUsing(fn ($state) => match ($state) {
+                'agendado' => 'Agendado',
+                'cancelado' => 'Cancelado',
+                'ASO ok' => 'ASO OK',
+                'ASO enviado' => 'ASO Enviado',
+                'não compareceu' => 'Não Compareceu',
+                default => 'Desconhecido',
+            })
+            ->color(fn ($state) => match ($state) {
+                'agendado' => 'warning',
+                'cancelado' => 'danger',
+                'ASO ok' => 'success',
+                'ASO enviado' => 'info',
+                'não compareceu' => 'gray',
+                default => 'secondary',
+            })
+            ->action(fn ($record) => $record->update([
+                'status' => match ($record->status) {
+                    'agendado' => 'cancelado',
+                    'cancelado' => 'ASO ok',
+                    'ASO ok' => 'ASO enviado',
+                    'ASO enviado' => 'não compareceu',
+                    'não compareceu' => 'agendado', // Volta ao primeiro estado
+                    default => 'agendado',
+                }
+            ]))
+            ->tooltip('Clique para mudar o status'),        
             Tables\Columns\BadgeColumn::make('estado_atrasado')
                 ->label('Situação')
                 ->getStateUsing(function ($record) {
@@ -99,6 +112,23 @@ class BuscaAsoResource extends Resource
                 ]),
         ])
         ->filters([
+            Tables\Filters\Filter::make('buscar')
+            ->form([
+                Forms\Components\TextInput::make('search')
+                    ->label('Nome ou CPF')
+                    ->placeholder('Digite o nome ou CPF...')
+                    ->debounce(500), // Pequeno delay para evitar múltiplas requisições
+            ])
+            ->query(function (Builder $query, array $data) {
+                if (!empty($data['search'])) {
+                    $searchTerm = $data['search'];
+                    return $query->where(function ($query) use ($searchTerm) {
+                        $query->where('nome_funcionario', 'like', "%{$searchTerm}%")
+                              ->orWhere('doc_identificacao_cpf', 'like', "%{$searchTerm}%");
+                    });
+                }
+                return $query;
+            }),
             // Filtro por Ano do Registro
             Filter::make('ano_registro')
                 ->form([

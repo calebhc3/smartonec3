@@ -17,7 +17,7 @@ class WelcomePage extends Page
     {
         return auth()->user()->getRoleNames()->first() ?? 'Sem função';
     }
-
+    
     // Método customizado para verificar se a logo deve ser exibida
     public function hasLogo(): bool
     {
