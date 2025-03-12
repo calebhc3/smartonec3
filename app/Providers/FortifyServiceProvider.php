@@ -15,6 +15,9 @@ use Laravel\Fortify\Fortify;
 use Illuminate\Support\Facades\Event;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\CustomLoginResponse;
+use Illuminate\Auth\Events\Verified;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class FortifyServiceProvider extends ServiceProvider
 {

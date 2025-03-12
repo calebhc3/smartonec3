@@ -19,6 +19,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
 use App\Filament\Pages\WelcomePage;
+use App\Filament\Pages\EditProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -46,6 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 WelcomePage::class,
+                EditProfile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

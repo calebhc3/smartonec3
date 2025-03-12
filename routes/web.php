@@ -30,9 +30,10 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return redirect('/admin'); // Redireciona após o logout
     })->name('dashboard');
 });
+
 Route::post('/logout', function () {
     Auth::logout();
     return redirect('/login'); // Redireciona após o logout
