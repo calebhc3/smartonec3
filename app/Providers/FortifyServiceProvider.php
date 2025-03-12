@@ -13,6 +13,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use Illuminate\Support\Facades\Event;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use App\Http\Responses\CustomLoginResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->singleton(LoginResponseContract::class, CustomLoginResponse::class);
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
@@ -43,6 +47,17 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
+        
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where('email', $request->email)->first();
+        
+            if ($user && Hash::check($request->password, $user->password)) {
+                return $user;
+            }
+        
+            return null;  // Retorna null se não encontrar o usuário ou a senha estiver errada
+        });
+        
             // Redireciona para /admin após a verificação de email
     Event::listen(Verified::class, function ($event) {
         return redirect('/admin');

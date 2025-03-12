@@ -33,3 +33,7 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+Route::post('/logout', function () {
+    Auth::logout();
+    return redirect('/login'); // Redireciona após o logout
+})->name('logout');
