@@ -294,10 +294,16 @@ class AgendamentoResource extends Resource
                                 ->send();
                         }
                     }),      
-                Tables\Actions\Action::make('export')
+                    Tables\Actions\Action::make('export')
                     ->label('Exportar para Excel')
                     ->icon('heroicon-m-inbox')
-                    ->action(fn () => Excel::download(new AgendamentosExport, 'agendamentos_' . now()->format('Y-m-d') . '.xlsx')),
+                    ->action(function ($livewire) {
+                        // Obtém os filtros aplicados na tabela
+                        $filters = $livewire->tableFilters;
+                
+                        // Exporta os dados filtrados
+                        return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
+                    }),
             ]);
     }
 

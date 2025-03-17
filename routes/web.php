@@ -38,3 +38,5 @@ Route::post('/logout', function () {
     Auth::logout();
     return redirect('/login'); // Redireciona após o logout
 })->name('logout');
+
+Route::redirect('/auth/login', '/login', 301);

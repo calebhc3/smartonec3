@@ -11,41 +11,97 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths
 {
+    protected $filters;
+
+    public function __construct(array $filters = [])
+    {
+        $this->filters = $filters;
+    }
+
     public function collection()
     {
-        // Retorna todos os dados do modelo Agendamento
-        return Agendamento::with(['empresa', 'unidade', 'user']) // Carrega os relacionamentos
-            ->get()
-            ->map(function ($agendamento) {
-                return [
-                    'id' => $agendamento->id,
-                    'empresa' => $agendamento->empresa ? $agendamento->empresa->nome : 'N/A',
-                    'unidade' => $agendamento->unidade ? $agendamento->unidade->nome : 'N/A',
-                    'cidade_atendimento' => $agendamento->cidade_atendimento,
-                    'estado_atendimento' => $agendamento->estado_atendimento,
-                    'data_exame' => $agendamento->data_exame,
-                    'horario_exame' => $agendamento->horario_exame,
-                    'nome_funcionario' => $agendamento->nome_funcionario,
-                    'contato_whatsapp' => $agendamento->contato_whatsapp,
-                    'doc_identificacao_rg' => $agendamento->doc_identificacao_rg,
-                    'doc_identificacao_cpf' => $agendamento->doc_identificacao_cpf,
-                    'data_nascimento' => $agendamento->data_nascimento,
-                    'data_admissao' => $agendamento->data_admissao,
-                    'funcao' => $agendamento->funcao,
-                    'setor' => $agendamento->setor,
-                    'tipo_exame' => $agendamento->tipo_exame,
-                    'status' => $agendamento->status,
-                    'sla' => $agendamento->sla,
-                    'user' => $agendamento->user ? $agendamento->user->name : 'N/A',
-                    'data_solicitacao' => $agendamento->data_solicitacao,
-                    'nome_solicitante' => $agendamento->nome_solicitante,
-                    'email_solicitante' => $agendamento->email_solicitante,
-                    'whatsapp_solicitante' => $agendamento->whatsapp_solicitante,
-                    'data_devolutiva' => $agendamento->data_devolutiva,
-                    'clinica_agendada' => $agendamento->clinica_agendada,
-                    'comparecimento' => $agendamento->comparecimento,
-                ];
+        \Log::info('Filtros recebidos:', $this->filters); // Log dos filtros
+    
+        $query = Agendamento::query();
+    
+        // Filtro de busca
+        if (!empty($this->filters['buscar']['search'])) {
+            $searchTerm = $this->filters['buscar']['search'];
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('nome_funcionario', 'like', "%{$searchTerm}%")
+                      ->orWhere('doc_identificacao_cpf', 'like', "%{$searchTerm}%");
             });
+        }
+    
+        // Filtro de tipo de exame
+        if (!empty($this->filters['tipo_exame']['value'])) {
+            $query->where('tipo_exame', $this->filters['tipo_exame']['value']);
+        }
+    
+        // Filtro de ano
+        if (!empty($this->filters['ano_registro']['ano'])) {
+            $query->whereYear('data_exame', $this->filters['ano_registro']['ano']);
+        }
+    
+        // Filtro de mês
+        if (!empty($this->filters['mes_registro']['mes'])) {
+            $query->whereMonth('data_exame', $this->filters['mes_registro']['mes']);
+        }
+    
+        // Filtro de empresa
+        if (!empty($this->filters['empresa_id']['value'])) {
+            $query->where('empresa_id', $this->filters['empresa_id']['value']);
+        }
+    
+        // Filtro de status
+        if (!empty($this->filters['status']['value'])) {
+            $query->where('status', $this->filters['status']['value']);
+        }
+    
+        // Filtro de data do exame
+        if (!empty($this->filters['data_exame']['data_exame'])) {
+            $query->whereDate('data_exame', $this->filters['data_exame']['data_exame']);
+        }
+    
+        // Filtro de SLA
+        if (!empty($this->filters['sla']['value'])) {
+            $query->where('sla', $this->filters['sla']['value']);
+        }
+    
+        // Retorna os dados filtrados com os relacionamentos
+        $resultados = $query->with(['empresa', 'unidade', 'user'])->get();
+        \Log::info('Resultados da query:', $resultados->toArray()); // Log dos resultados
+    
+        return $resultados->map(function ($agendamento) {
+            return [
+                'id' => $agendamento->id,
+                'empresa' => $agendamento->empresa ? $agendamento->empresa->nome : 'N/A',
+                'unidade' => $agendamento->unidade ? $agendamento->unidade->nome : 'N/A',
+                'cidade_atendimento' => $agendamento->cidade_atendimento,
+                'estado_atendimento' => $agendamento->estado_atendimento,
+                'data_exame' => $agendamento->data_exame ? \Carbon\Carbon::parse($agendamento->data_exame)->format('d/m/Y') : 'N/A',
+                'horario_exame' => $agendamento->horario_exame,
+                'nome_funcionario' => $agendamento->nome_funcionario,
+                'contato_whatsapp' => $agendamento->contato_whatsapp,
+                'doc_identificacao_rg' => $agendamento->doc_identificacao_rg,
+                'doc_identificacao_cpf' => $agendamento->doc_identificacao_cpf,
+                'data_exame' => $agendamento->data_exame ? \Carbon\Carbon::parse($agendamento->data_exame)->format('d/m/Y') : 'N/A', // Verifica se não é nulo
+                'data_admissao' => $agendamento->data_admissao ? \Carbon\Carbon::parse($agendamento->data_admissao)->format('d/m/Y') : 'N/A',
+                'funcao' => $agendamento->funcao,
+                'setor' => $agendamento->setor,
+                'tipo_exame' => $agendamento->tipo_exame,
+                'status' => $agendamento->status,
+                'sla' => $agendamento->sla,
+                'user' => $agendamento->user ? $agendamento->user->name : 'N/A',
+                'data_solicitacao' => $agendamento->data_solicitacao ? \Carbon\Carbon::parse($agendamento->data_solicitacao)->format('d/m/Y') : 'N/A',
+                'nome_solicitante' => $agendamento->nome_solicitante,
+                'email_solicitante' => $agendamento->email_solicitante,
+                'whatsapp_solicitante' => $agendamento->whatsapp_solicitante,
+                'data_devolutiva' => $agendamento->data_devolutiva ? \Carbon\Carbon::parse($agendamento->data_devolutiva)->format('d/m/Y') : 'N/A',
+                'clinica_agendada' => $agendamento->clinica_agendada,
+                'comparecimento' => $agendamento->comparecimento,
+            ];
+        });
     }
 
     public function headings(): array

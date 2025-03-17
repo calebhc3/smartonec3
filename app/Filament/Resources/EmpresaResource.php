@@ -29,7 +29,6 @@ class EmpresaResource extends Resource
                     ->label('Nome da Empresa')
                     ->required()
                     ->maxLength(255),
-
                 TextInput::make('cnpj')
                     ->label('CNPJ')
                     ->required()
@@ -42,16 +41,6 @@ class EmpresaResource extends Resource
                     ->tel()
                     ->required()
                     ->mask('(99) 99999-9999'),
-
-                TextInput::make('email')
-                    ->label('Email')
-                    ->required()
-                    ->email(),
-
-                TextArea::make('endereco')
-                    ->label('Endereço')
-                    ->required()
-                    ->maxLength(500),
             ]);
     }
 

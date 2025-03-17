@@ -38,19 +38,6 @@ class UnidadeResource extends Resource
                     ->tel()
                     ->required()
                     ->mask('(99) 99999-9999'),
-
-                // Campo para o Email
-                TextInput::make('email')
-                    ->label('Email')
-                    ->required()
-                    ->email(),
-
-                // Campo para o Endereço
-                Textarea::make('endereco')
-                    ->label('Endereço')
-                    ->required()
-                    ->maxLength(500),
-
                 // Seleção da Empresa a qual a unidade pertence
                 Select::make('empresa_id')
                     ->label('Empresa')
