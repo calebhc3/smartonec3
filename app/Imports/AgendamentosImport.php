@@ -60,7 +60,7 @@ class AgendamentosImport implements ToModel, WithHeadingRow
                 'whatsapp_solicitante' => $row['whatsapp_solicitante'] ?? null,
                 'data_devolutiva' => isset($row['data_devolutiva']) ? \Carbon\Carbon::createFromFormat('Y-m-d', \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['data_devolutiva'])->format('Y-m-d')) : null,
                 'comparecimento' => $row['comparecimento'] ?? null,
-                'user_id' => $row['user_id'] ?? null,
+                'user_id' => auth()->id(),
             ]);
 
             // Salva e retorna o modelo

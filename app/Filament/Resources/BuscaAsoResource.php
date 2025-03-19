@@ -19,6 +19,7 @@ use App\Exports\AgendamentosExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\SelectColumn;
 
 class BuscaAsoResource extends Resource
 {
@@ -61,36 +62,17 @@ class BuscaAsoResource extends Resource
             Tables\Columns\TextColumn::make('data_exame')->date(),
             Tables\Columns\TextColumn::make('sla')
             ->label('SLA'),
-            Tables\Columns\TextColumn::make('status')
+            Tables\Columns\SelectColumn::make('status')
             ->label('Status')
             ->sortable()
-            ->formatStateUsing(fn ($state) => match ($state) {
+            ->options([
                 'agendado' => 'Agendado',
                 'cancelado' => 'Cancelado',
                 'ASO ok' => 'ASO OK',
                 'ASO enviado' => 'ASO Enviado',
                 'não compareceu' => 'Não Compareceu',
-                default => 'Desconhecido',
-            })
-            ->color(fn ($state) => match ($state) {
-                'agendado' => 'warning',
-                'cancelado' => 'danger',
-                'ASO ok' => 'success',
-                'ASO enviado' => 'info',
-                'não compareceu' => 'gray',
-                default => 'secondary',
-            })
-            ->action(fn ($record) => $record->update([
-                'status' => match ($record->status) {
-                    'agendado' => 'cancelado',
-                    'cancelado' => 'ASO ok',
-                    'ASO ok' => 'ASO enviado',
-                    'ASO enviado' => 'não compareceu',
-                    'não compareceu' => 'agendado', // Volta ao primeiro estado
-                    default => 'agendado',
-                }
-            ]))
-            ->tooltip('Clique para mudar o status'),        
+            ])
+            ->afterStateUpdated(fn ($record, $state) => $record->update(['status' => $state])),            
             Tables\Columns\BadgeColumn::make('estado_atrasado')
                 ->label('Situação')
                 ->getStateUsing(function ($record) {

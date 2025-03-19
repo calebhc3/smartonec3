@@ -243,6 +243,35 @@ class AgendamentoResource extends Resource
                     ->form([Forms\Components\DatePicker::make('data_exame')])
                     ->query(fn (Builder $query, array $data) => self::applyDataExameFilter($query, $data)),
                 SelectFilter::make('sla')->options(self::getSlaOptions())->label('SLA'),
+                    // Novo filtro por Situação (Atrasado / No Prazo)
+                    SelectFilter::make('situacao')
+                    ->label('Situação')
+                    ->options([
+                        'Atrasado' => 'Atrasado',
+                        'No Prazo' => 'No Prazo',
+                    ])
+                    ->modifyQueryUsing(function (Builder $query, array $data) {
+                        // Verifica se o valor do filtro foi passado corretamente
+                        if (!empty($data['value'])) {
+                            $situacao = $data['value'];
+                
+                            // Carrega todos os registros da query
+                            $registros = $query->get();
+                
+                            // Filtra os registros com base na lógica de getSituacaoAtrasado
+                            $registrosFiltrados = $registros->filter(function ($record) use ($situacao) {
+                                return self::getSituacaoAtrasado($record) === $situacao;
+                            });
+                
+                            // Obtém os IDs dos registros filtrados
+                            $idsFiltrados = $registrosFiltrados->pluck('id');
+                
+                            // Aplica o filtro na query original usando os IDs
+                            $query->whereIn('id', $idsFiltrados);
+                        }
+                
+                        return $query;
+                    })           
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(), // Ação de deletar em massa
@@ -406,14 +435,21 @@ class AgendamentoResource extends Resource
     {
         $dataExame = Carbon::parse($record->data_exame);
         $hoje = Carbon::today();
+    
+        // Definição do prazo conforme o SLA
         $prazo = match ($record->sla) {
             'clinico' => 1,
             'clinico_complementar' => 3,
             'clinico_acidos' => 10,
             default => 0,
         };
-        return ($record->status === 'pendente' && $dataExame->diffInDays($hoje) > $prazo) 
-            ? 'Atrasado' 
-            : 'No Prazo';
+    
+        // Verifica se o exame está atrasado
+        if (in_array($record->status, ['agendado', 'não compareceu']) && $dataExame->isBefore($hoje)) {
+            return 'Atrasado';
+        }
+    
+        return 'No Prazo';
     }
+    
 }
