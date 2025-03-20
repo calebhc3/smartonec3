@@ -69,14 +69,13 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
         }
     
         // Retorna os dados filtrados com os relacionamentos
-        $resultados = $query->with(['empresa', 'unidade', 'user'])->get();
+        $resultados = $query->with(['empresa', 'user'])->get();
         \Log::info('Resultados da query:', $resultados->toArray()); // Log dos resultados
     
         return $resultados->map(function ($agendamento) {
             return [
                 'id' => $agendamento->id,
                 'empresa' => $agendamento->empresa ? $agendamento->empresa->nome : 'N/A',
-                'unidade' => $agendamento->unidade ? $agendamento->unidade->nome : 'N/A',
                 'cidade_atendimento' => $agendamento->cidade_atendimento,
                 'estado_atendimento' => $agendamento->estado_atendimento,
                 'data_exame' => $agendamento->data_exame ? \Carbon\Carbon::parse($agendamento->data_exame)->format('d/m/Y') : 'N/A',

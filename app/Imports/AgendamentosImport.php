@@ -25,7 +25,6 @@ class AgendamentosImport implements ToModel, WithHeadingRow
             // Validação básica (Opcional, mas recomendado)
             $validator = Validator::make($row, [
                 'empresa_id' => 'required|exists:empresas,id',
-                'unidade_id' => 'required|exists:unidades,id',
                 'estado_atendimento' => 'required|in:' . implode(',', array_keys(self::getEstadosBrasileiros())),
                 'cidade_atendimento' => 'required|string',
                 'data_exame' => 'required',
@@ -46,7 +45,6 @@ class AgendamentosImport implements ToModel, WithHeadingRow
             // Criando um novo agendamento
             $agendamento = new Agendamento([
                 'empresa_id' => $this->empresaSelecionada,
-                'unidade_id' => $row['unidade_id'],
                 'estado_atendimento' => $row['estado_atendimento'],
                 'cidade_atendimento' => $row['cidade_atendimento'],
                 'data_exame' => isset($row['data_exame']) ? \Carbon\Carbon::createFromFormat('Y-m-d', \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['data_exame'])->format('Y-m-d')) : null,

@@ -27,7 +27,6 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
 
     protected $fillable = [
         'empresa_id',
-        'unidade_id',
         'cidade_atendimento',
         'estado_atendimento',
         'data_exame',
@@ -83,10 +82,4 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
     {
         return $this->belongsTo(Empresa::class, 'empresa_id');
     }
-
-    public function unidade()
-    {
-        return $this->belongsTo(Unidade::class);
-    }
-    
 }

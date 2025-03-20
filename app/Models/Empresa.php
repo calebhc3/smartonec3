@@ -12,11 +12,4 @@ class Empresa extends Model
 
     protected $fillable = ['nome', 'cnpj', 'telefone', 'email', 'endereco'];
 
-    // Relacionamento: Uma empresa tem muitas unidades
-    public function unidades()
-    {
-        return $this->hasMany(Unidade::class);
-    }
-
-
 }

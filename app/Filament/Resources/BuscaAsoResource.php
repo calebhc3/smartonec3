@@ -52,7 +52,6 @@ class BuscaAsoResource extends Resource
         ->query(Agendamento::query()) // Mantém a query base
         ->columns([
             Tables\Columns\TextColumn::make('empresa.nome'),
-            Tables\Columns\TextColumn::make('unidade.nome'),
             Tables\Columns\TextColumn::make('nome_funcionario')
             ->label('Colaborador'),
             Tables\Columns\TextColumn::make('tipo_exame')

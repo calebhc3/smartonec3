@@ -43,11 +43,6 @@ class AgendamentoResource extends Resource
                     ->required()
                     ->label('Empresa'),
     
-                Forms\Components\Select::make('unidade_id')
-                    ->relationship('unidade', 'nome')
-                    ->required()
-                    ->label('Unidade'),
-    
                 Forms\Components\Select::make('estado_atendimento')
                     ->options(self::getEstadosBrasileiros())
                     ->required()
@@ -382,7 +377,9 @@ class AgendamentoResource extends Resource
                         // Exporta os dados filtrados
                         return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
                     }),
-            ]);
+            ])
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25); // Define 25 registros por página como padrão
     }
 
     public static function getPages(): array
