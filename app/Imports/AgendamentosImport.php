@@ -7,9 +7,18 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class AgendamentosImport implements ToModel, WithHeadingRow
 {
+    private $empresaSelecionada;
+
+    public function __construct($empresaSelecionada)
+    {
+        $this->empresaSelecionada = $empresaSelecionada;
+    }
+
     public function model(array $row)
     {
         try {
@@ -36,7 +45,7 @@ class AgendamentosImport implements ToModel, WithHeadingRow
 
             // Criando um novo agendamento
             $agendamento = new Agendamento([
-                'empresa_id' => $row['empresa_id'],
+                'empresa_id' => $this->empresaSelecionada,
                 'unidade_id' => $row['unidade_id'],
                 'estado_atendimento' => $row['estado_atendimento'],
                 'cidade_atendimento' => $row['cidade_atendimento'],

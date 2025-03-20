@@ -42,111 +42,143 @@ class AgendamentoResource extends Resource
                     ->relationship('empresa', 'nome')
                     ->required()
                     ->label('Empresa'),
+    
                 Forms\Components\Select::make('unidade_id')
                     ->relationship('unidade', 'nome')
                     ->required()
                     ->label('Unidade'),
+    
                 Forms\Components\Select::make('estado_atendimento')
                     ->options(self::getEstadosBrasileiros())
                     ->required()
                     ->label('Estado do Atendimento'),
+    
                 Forms\Components\TextInput::make('cidade_atendimento')
                     ->required()
-                    ->label('Cidade do Atendimento'),
+                    ->label('Cidade do Atendimento')
+                    ->maxLength(100),
+    
                 Forms\Components\DatePicker::make('data_exame')
                     ->required()
-                    ->label('Data do Exame'),
+                    ->label('Data do Exame')
+                    ->after('today') // Exame deve ser no futuro
+                    ->displayFormat('d/m/Y'),
+    
                 Forms\Components\TimePicker::make('horario_exame')
                     ->required()
                     ->label('Horário do Exame'),
+    
                 Forms\Components\TextInput::make('clinica_agendada')
                     ->required()
-                    ->label('Clínica Agendada'),
+                    ->label('Clínica Agendada')
+                    ->maxLength(150),
+    
                 Forms\Components\TextInput::make('nome_funcionario')
                     ->required()
-                    ->label('Nome do Funcionário'),
+                    ->label('Nome do Funcionário')
+                    ->maxLength(150),
+    
                 Forms\Components\TextInput::make('contato_whatsapp')
                     ->required()
                     ->label('Contato WhatsApp')
-                    ->mask('(99) 99999-9999'),
+                    ->mask('(99) 99999-9999')
+                    ->rule('regex:/^\(\d{2}\) \d{5}-\d{4}$/'),
+    
                 Forms\Components\TextInput::make('doc_identificacao_rg')
                     ->required()
                     ->label('RG')
-                    ->mask('99.999.999-99'),
+                    ->mask('99.999.999-9')
+                    ->rule('regex:/^\d{2}\.\d{3}\.\d{3}-\d$/'),
+    
                 Forms\Components\TextInput::make('doc_identificacao_cpf')
                     ->required()
                     ->label('CPF')
-                    ->mask('999.999.999-99'),
+                    ->mask('999.999.999-99')
+                    ->rule('cpf'), // Usa uma validação de CPF Laravel
+    
                 Forms\Components\DatePicker::make('data_nascimento')
                     ->required()
                     ->label('Data de Nascimento')
                     ->displayFormat('d/m/Y')
-                    ->maxDate(now()),
+                    ->maxDate(now()->subYears(18)), // Apenas maiores de idade
+    
                 Forms\Components\DatePicker::make('data_admissao')
                     ->required()
                     ->label('Data de Admissão')
-                    ->displayFormat('d/m/Y'),
+                    ->displayFormat('d/m/Y')
+                    ->beforeOrEqual('today'),
+    
                 Forms\Components\TextInput::make('funcao')
                     ->required()
-                    ->label('Função'),
+                    ->label('Função')
+                    ->maxLength(100),
+    
                 Forms\Components\TextInput::make('setor')
                     ->required()
-                    ->label('Setor'),
+                    ->label('Setor')
+                    ->maxLength(100),
+    
                 Forms\Components\Select::make('tipo_exame')
                     ->options(self::getTiposExame())
                     ->required()
                     ->label('Tipo de Exame'),
+    
                 Forms\Components\Select::make('status')
                     ->options(self::getStatusExame())
                     ->default('agendado')
                     ->required()
                     ->label('Status do Exame'),
+    
                 Forms\Components\Select::make('sla')
                     ->options(self::getSlaOptions())
                     ->required()
                     ->label('SLA'),
-                    Group::make([
-                        DateTimePicker::make('data_solicitacao')
-                            ->required()
-                            ->label('Data e Hora da Solicitação')
-                            ->default(now())
-                            ->reactive()
-                            ->afterStateUpdated(fn ($set) => $set('senha_confirmacao', null)) // Limpa a senha ao mudar a data
-                            ->rules([
-                                function ($get) {
-                                    return function (string $attribute, $value, \Closure $fail) use ($get) {
-                                        $dataSolicitacao = Carbon::parse($value);
-                                        $ontem = Carbon::yesterday();
+    
+                Group::make([
+                    DateTimePicker::make('data_solicitacao')
+                        ->required()
+                        ->label('Data e Hora da Solicitação')
+                        ->default(now())
+                        ->reactive()
+                        ->afterStateUpdated(fn ($set) => $set('senha_confirmacao', null))
+                        ->rules([
+                            function ($get) {
+                                return function (string $attribute, $value, \Closure $fail) use ($get) {
+                                    $dataSolicitacao = Carbon::parse($value);
+                                    $ontem = Carbon::yesterday();
                     
-                                        if ($dataSolicitacao->lessThan($ontem)) {
-                                            // Se a data for antes de ontem, verifica a senha
-                                            if ($get('senha_confirmacao') !== 'senha_segura') {
-                                                $fail('A data de solicitação está no passado. Insira uma senha válida.');
-                                            }
+                                    if ($dataSolicitacao->lessThan($ontem)) {
+                                        if ($get('senha_confirmacao') !== 'senha_segura') {
+                                            $fail('A data de solicitação está no passado. Insira uma senha válida.');
                                         }
-                                    };
-                                },
-                            ]),
-                    
-                        TextInput::make('senha_confirmacao')
-                            ->label('Senha de Confirmação')
-                            ->password()
-                            ->reactive()
-                            ->hint('Se a data for anterior a ontem, entre em contato com um gestor para autorização.') // Dica explicativa                            ->hidden(fn ($get) => Carbon::parse($get('data_solicitacao'))->greaterThanOrEqualTo(Carbon::yesterday())) // Oculta se a data for hoje ou no futuro
-                            ->required(fn ($get) => Carbon::parse($get('data_solicitacao'))->lessThan(Carbon::yesterday())) // Exige senha só se a data for antes de ontem
-                            ->rules([
-                                function ($get) {
-                                    return function (string $attribute, $value, \Closure $fail) {
-                                        if ($value !== 'senha_segura') {
-                                            $fail('Senha de confirmação incorreta.');
-                                        }
-                                    };
-                                },
-                            ]),
-                        ]),   
+                                    }
+                                };
+                            },
+                        ]),
+    
+                    TextInput::make('senha_confirmacao')
+                        ->label('Senha de Confirmação')
+                        ->password()
+                        ->reactive()
+                        ->hint('Se a data for anterior a ontem, entre em contato com um gestor para autorização.') 
+                        ->hidden(fn ($get) => Carbon::parse($get('data_solicitacao'))->greaterThanOrEqualTo(Carbon::yesterday()))
+                        ->required(fn ($get) => Carbon::parse($get('data_solicitacao'))->lessThan(Carbon::yesterday()))
+                        ->rules([
+                            function ($get) {
+                                return function (string $attribute, $value, \Closure $fail) {
+                                    if ($value !== 'senha_segura') {
+                                        $fail('Senha de confirmação incorreta.');
+                                    }
+                                };
+                            },
+                        ]),
+                ]),   
+    
                 Forms\Components\TextInput::make('nome_solicitante')
                     ->required()
-                    ->label('Nome do Solicitante'),
+                    ->label('Nome do Solicitante')
+                    ->maxLength(150),
+    
                 Radio::make('origem_agendamento')
                     ->options([
                         'whatsapp' => 'WhatsApp',
@@ -155,21 +187,26 @@ class AgendamentoResource extends Resource
                     ->default('email')
                     ->reactive()
                     ->label('Origem do Agendamento'),
+    
                 Forms\Components\TextInput::make('contato_whatsapp')
                     ->label('Contato WhatsApp')
                     ->mask('(99) 99999-9999')
                     ->required(fn ($get) => $get('origem_agendamento') === 'whatsapp')
-                    ->hidden(fn ($get) => $get('origem_agendamento') !== 'whatsapp'),
+                    ->hidden(fn ($get) => $get('origem_agendamento') !== 'whatsapp')
+                    ->rule('regex:/^\(\d{2}\) \d{5}-\d{4}$/'),
+    
                 Forms\Components\TextInput::make('email_solicitante')
                     ->label('E-mail do Solicitante')
                     ->required(fn ($get) => $get('origem_agendamento') === 'email')
                     ->hidden(fn ($get) => $get('origem_agendamento') !== 'email')
                     ->rule('regex:/^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,},\s*)*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/')
                     ->helperText('Separe múltiplos e-mails com vírgula.'),
+    
                 Forms\Components\DateTimePicker::make('data_devolutiva')
                     ->required()
                     ->label('Data e Hora da Devolutiva')
                     ->maxDate(now()),
+    
                 Forms\Components\Select::make('comparecimento')
                     ->label('Comparecimento')
                     ->options([
@@ -178,11 +215,12 @@ class AgendamentoResource extends Resource
                         'nao_compareceu' => 'Não Compareceu',
                     ])
                     ->default('nao_informado'),
+    
                 Forms\Components\Hidden::make('user_id')
                     ->default(auth()->id()),
             ]);
     }
-
+    
     public static function table(Table $table): Table
     {
         return $table
@@ -283,46 +321,57 @@ class AgendamentoResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
-                    ->label('Importar Agendamentos')
-                    ->form([
-                        Forms\Components\FileUpload::make('arquivo')
-                            ->label('Arquivo Excel')
-                            ->disk('public') // Salva em storage/app/public
-                            ->directory('uploads') // Salva os arquivos dentro de storage/app/public/uploads
-                            ->acceptedFileTypes([
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'application/vnd.ms-excel'
-                            ]) // Apenas arquivos Excel
-                            ->required(),
-                    ])
-                    ->action(function ($data) {
-                        try {
-                            // Obtém o caminho correto do arquivo sem incluir "public/"
-                            $filePath = storage_path('app/public/' . $data['arquivo']);
+                ->label('Importar Agendamentos')
+                ->form([
+                    Forms\Components\Select::make('empresa_id')
+                        ->label('Selecione a Empresa')
+                        ->options(\App\Models\Empresa::pluck('nome', 'id')) // Lista todas as empresas cadastradas
+                        ->required()
+                        ->searchable(), // Permite busca dentro do select
+                    Forms\Components\FileUpload::make('arquivo')
+                        ->label('Arquivo Excel')
+                        ->disk('public') // Salva em storage/app/public
+                        ->directory('uploads') // Salva os arquivos dentro de storage/app/public/uploads
+                        ->acceptedFileTypes([
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/vnd.ms-excel'
+                        ]) // Apenas arquivos Excel
+                        ->required(),
+                ])
+                ->action(function ($data) {
+                    try {
+                        // Obtém o caminho correto do arquivo sem incluir "public/"
+                        $filePath = storage_path('app/public/' . $data['arquivo']);
             
-                            // Verifica se o arquivo realmente existe
-                            if (!file_exists($filePath)) {
-                                throw new \Exception("Arquivo não encontrado: {$filePath}");
-                            }
-            
-                            // Importa o arquivo Excel
-                            Excel::import(new AgendamentosImport, $filePath);
-            
-                            // Notificação de sucesso
-                            Notification::make()
-                                ->title('Importação concluída')
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            Log::error('Erro na importação: ' . $e->getMessage());
-            
-                            Notification::make()
-                                ->title('Erro na importação')
-                                ->body('Erro: ' . $e->getMessage())
-                                ->danger()
-                                ->send();
+                        // Verifica se o arquivo realmente existe
+                        if (!file_exists($filePath)) {
+                            throw new \Exception("Arquivo não encontrado: {$filePath}");
                         }
-                    }),      
+            
+                        // Obtém a empresa selecionada
+                        $empresa = \App\Models\Empresa::find($data['empresa_id']);
+                        if (!$empresa) {
+                            throw new \Exception("Empresa selecionada não encontrada.");
+                        }
+            
+                        // Importa o arquivo Excel e passa o ID da empresa
+                        Excel::import(new AgendamentosImport($data['empresa_id']), $filePath);
+            
+                        // Notificação de sucesso
+                        Notification::make()
+                            ->title('Importação concluída')
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Log::error('Erro na importação: ' . $e->getMessage());
+            
+                        Notification::make()
+                            ->title('Erro na importação')
+                            ->body('Erro: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),               
                     Tables\Actions\Action::make('export')
                     ->label('Exportar para Excel')
                     ->icon('heroicon-m-inbox')
