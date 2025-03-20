@@ -22,6 +22,7 @@ use Filament\Forms\Components\TextInput;
 use App\Imports\AgendamentosImport;
 use Illuminate\Support\Facades\Log;
 use Filament\Notifications\Notification;  // Correct import
+use Filament\Tables\Actions\Action;
 
 class AgendamentoResource extends Resource
 {
@@ -219,31 +220,40 @@ class AgendamentoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->query(Agendamento::query()) // Mantém a query base
-            ->columns([
-                Tables\Columns\TextColumn::make('empresa.nome'),
-                Tables\Columns\TextColumn::make('nome_funcionario'),
-                Tables\Columns\TextColumn::make('data_exame')->date('d/m/Y'),
-                Tables\Columns\TextColumn::make('sla'),
-                Tables\Columns\TextColumn::make('tipo_exame'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->label('Status')
-                    ->formatStateUsing(fn ($state) => self::getStatusExame()[$state] ?? 'Desconhecido')
-                    ->colors([
-                        'warning' => 'agendado',
-                        'danger' => 'cancelado',
-                        'success' => 'ASO ok',
-                        'info' => 'ASO enviado',
-                        'gray' => 'não compareceu',
-                    ])
-                    ->sortable(),
-                Tables\Columns\BadgeColumn::make('estado_atrasado')
-                    ->label('Situação')
-                    ->getStateUsing(fn ($record) => self::getSituacaoAtrasado($record))
-                    ->colors([
-                        'danger' => 'Atrasado',
-                        'success' => 'No Prazo',
-                    ]),
+        ->query(Agendamento::query()->with('empresa')) // Carrega o relacionamento empresa antecipadamente
+        ->columns([
+            Tables\Columns\TextColumn::make('empresa.nome')->label('Empresa'),
+            Tables\Columns\TextColumn::make('nome_funcionario')->label('Funcionário'),
+            Tables\Columns\TextColumn::make('data_exame')->date('d/m/Y')->label('Data do Exame'),
+            Tables\Columns\TextColumn::make('sla')->label('SLA'),
+            Tables\Columns\TextColumn::make('tipo_exame')->label('Tipo de Exame'),
+            Tables\Columns\BadgeColumn::make('status')
+                ->label('Status')
+                ->formatStateUsing(fn ($state) => self::getStatusExame()[$state] ?? 'Desconhecido')
+                ->colors([
+                    'warning' => 'agendado',
+                    'danger' => 'cancelado',
+                    'success' => 'ASO ok',
+                    'info' => 'ASO enviado',
+                    'gray' => 'não compareceu',
+                ])
+                ->sortable(),
+            // Coluna Badge para Não Compareceu (com contagem)
+            Tables\Columns\BadgeColumn::make('nao_compareceu_count')
+            ->label('Faltas')
+            ->colors([
+                'success' => fn ($state) => $state === 1,
+                'warning' => fn ($state) => $state === 2,
+                'danger' => fn ($state) => $state === 3,
+            ])
+            ->formatStateUsing(fn ($state) => $state > 0 ? "$state º falta" : ''),
+            Tables\Columns\BadgeColumn::make('estado_atrasado')
+                ->label('Situação')
+                ->getStateUsing(fn ($record) => $record ? self::getSituacaoAtrasado($record) : 'Desconhecido')
+                ->colors([
+                    'danger' => 'Atrasado',
+                    'success' => 'No Prazo',
+                ]),
             ])
             ->filters([
                 Tables\Filters\Filter::make('buscar')
@@ -310,6 +320,21 @@ class AgendamentoResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(), // Ação de deletar em massa
             ])
             ->actions([
+                Action::make('incrementFaltas')
+                ->label('Incrementar Faltas')
+                ->icon('heroicon-o-plus-circle')
+                ->color('primary')
+                ->action(function ($record) {
+                    // Incrementa o contador de "não compareceu"
+                    $newCount = $record->nao_compareceu_count + 1;
+            
+                    // Atualiza o valor no banco de dados
+                    $record->update(['nao_compareceu_count' => $newCount]);
+            
+                    // Retorna o registro atualizado para refletir a mudança na tabela
+                    return $record;
+                })
+                ->visible(fn ($record) => $record && $record->status === 'não compareceu'), // Só aparece se o status for "não compareceu"
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

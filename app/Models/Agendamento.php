@@ -16,6 +16,21 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
 
     use Auditable;
 
+            // Propriedade temporária para contar "não compareceu"
+        protected $naoCompareceuCount = 0;
+
+        // Método para definir a contagem
+        public function setNaoCompareceuCount($count)
+        {
+            $this->naoCompareceuCount = $count;
+        }
+    
+        // Método para obter a contagem
+        public function getNaoCompareceuCount()
+        {
+            return $this->naoCompareceuCount;
+        }
+
     // Definir quais alterações serão auditadas
     protected $auditInclude = [
         'status',
@@ -41,6 +56,7 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
         'setor',
         'tipo_exame',
         'status', 
+        'nao_compareceu_count',
         'sla',
         'user_id',
         'data_solicitacao',
@@ -82,4 +98,5 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
     {
         return $this->belongsTo(Empresa::class, 'empresa_id');
     }
+
 }

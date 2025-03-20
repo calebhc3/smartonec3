@@ -11,7 +11,6 @@ class CreateAgendamentosTable extends Migration
         Schema::create('agendamentos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('empresa_id')->constrained('empresas')->onDelete('cascade');
-            $table->foreignId('unidade_id')->constrained('unidades')->onDelete('cascade');
             $table->string('cidade_atendimento');
             $table->string('estado_atendimento');
             $table->date('data_exame');
