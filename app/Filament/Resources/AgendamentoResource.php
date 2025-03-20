@@ -286,6 +286,18 @@ class AgendamentoResource extends Resource
                     ->form([Forms\Components\DatePicker::make('data_exame')])
                     ->query(fn (Builder $query, array $data) => self::applyDataExameFilter($query, $data)),
                 SelectFilter::make('sla')->options(self::getSlaOptions())->label('SLA'),
+                SelectFilter::make('nao_compareceu_count')
+                ->label('Filtrar por Faltas')
+                ->options([
+                    1 => '1º Falta',
+                    2 => '2º Falta',
+                    3 => '3º Falta',
+                ])
+                ->query(function (Builder $query, array $data) {
+                    if (!empty($data['value'])) {
+                        $query->where('nao_compareceu_count', $data['value']);
+                    }
+                }),
                     // Novo filtro por Situação (Atrasado / No Prazo)
                     SelectFilter::make('situacao')
                     ->label('Situação')

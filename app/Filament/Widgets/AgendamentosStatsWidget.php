@@ -31,8 +31,8 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
         })->count();
 
         // Outras métricas
-        $examesEnvioAsoPendente = $agendamentos->where('status', 'ASO ok')->count();
-        $aguardandoRealizacao = $agendamentos->where('status', 'agendado')->count();
+        $examesEnvioAsoPendente = Agendamento::where('status', 'ASO ok')->count();
+        $aguardandoRealizacao = Agendamento::where('status', 'agendado')->count();
 
         $examesReagendamento = \App\Models\Agendamento::where(function ($query) {
             $query->where('status', 'Cancelado')
@@ -44,6 +44,7 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
         ->whereNotIn('status', ['ASO ok', 'ASO enviado'])
         ->count();
 
+        $asosTerceiraFalta = Agendamento::where('nao_compareceu_count', 3)->count();
 
         return [
             Card::make('Total de Agendamentos', $totalAgendamentos)
@@ -86,6 +87,12 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
             ->icon('heroicon-o-arrow-path')
             ->chart([3, 5, 7, 6, 4]) // Customize o gráfico conforme necessário
             ->url('/admin/agendamentos?tableFilters[status][value]=Cancelado&tableFilters[status][value]=Nao Compareceu&tableFilters[data_exame][before]=today'),   
+        Card::make('ASOs na Terceira Falta', $asosTerceiraFalta)
+            ->description('ASOs com três faltas')
+            ->color('danger')
+            ->icon('heroicon-o-exclamation-triangle')
+            ->chart([2, 3, 1, 4, 5])
+            ->url('/admin/agendamentos?tableFilters[status][value]=não+compareceu&tableFilters[nao_compareceu_count][value]=3'),
         ];
     }
 
