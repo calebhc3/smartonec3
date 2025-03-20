@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class, // Adicione o UserSeeder aqui
             EmpresaSeeder::class,
-            UnidadeSeeder::class,
             AgendamentoSeeder::class,
             PermissionSeeder::class,
         ]);

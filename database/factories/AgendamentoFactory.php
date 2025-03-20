@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Agendamento;
 use App\Models\Empresa;
-use App\Models\Unidade;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
@@ -28,7 +27,6 @@ class AgendamentoFactory extends Factory
 
         return [
             'empresa_id' => Empresa::inRandomOrder()->first()->id,
-            'unidade_id' => Unidade::inRandomOrder()->first()->id,
             'cidade_atendimento' => $this->faker->city, // Gera uma cidade aleatória
             'estado_atendimento' => $this->faker->stateAbbr, // Gera uma sigla de estado aleatória
             'data_exame' => $dataExame,

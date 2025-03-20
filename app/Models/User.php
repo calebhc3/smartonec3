@@ -11,8 +11,10 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
+use Filament\Models\Contracts\HasAvatar;
+use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, HasAvatar
 {
     use HasApiTokens;
     use FilamentUserHelpers; // Adiciona
@@ -21,6 +23,12 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    
+    public function getFilamentAvatarUrl(): ?string
+    {
+        $avatarColumn = config('filament-edit-profile.avatar_column', 'avatar_url');
+        return $this->$avatarColumn ? Storage::url("$this->$avatarColumn") : null;
+    }
     /**
      * The attributes that are mass assignable.
      *
@@ -30,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'avatar_url', // or column name according to config('filament-edit-profile.avatar_column', 'avatar_url')
     ];
 
     /**
