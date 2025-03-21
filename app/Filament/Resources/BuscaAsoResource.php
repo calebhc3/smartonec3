@@ -20,6 +20,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Actions\Action;
 
 class BuscaAsoResource extends Resource
 {
@@ -71,7 +72,16 @@ class BuscaAsoResource extends Resource
                 'ASO enviado' => 'ASO Enviado',
                 'não compareceu' => 'Não Compareceu',
             ])
-            ->afterStateUpdated(fn ($record, $state) => $record->update(['status' => $state])),            
+            ->afterStateUpdated(fn ($record, $state) => $record->update(['status' => $state])),  
+            // Coluna Badge para Não Compareceu (com contagem)
+            Tables\Columns\BadgeColumn::make('nao_compareceu_count')
+            ->label('Faltas')
+            ->colors([
+                'success' => fn ($state) => $state === 1,
+                'warning' => fn ($state) => $state === 2,
+                'danger' => fn ($state) => $state === 3,
+            ])
+            ->formatStateUsing(fn ($state) => $state > 0 ? "$state º falta" : ''),          
             Tables\Columns\BadgeColumn::make('estado_atrasado')
                 ->label('Situação')
                 ->getStateUsing(function ($record) {
@@ -197,6 +207,23 @@ class BuscaAsoResource extends Resource
                 ])
                 ->label('SLA'),
                 
+                ])
+                ->actions([
+                    Action::make('incrementFaltas')
+                    ->label('Incrementar Faltas')
+                    ->icon('heroicon-o-plus-circle')
+                    ->color('primary')
+                    ->action(function ($record) {
+                        // Incrementa o contador de "não compareceu"
+                        $newCount = $record->nao_compareceu_count + 1;
+                
+                        // Atualiza o valor no banco de dados
+                        $record->update(['nao_compareceu_count' => $newCount]);
+                
+                        // Retorna o registro atualizado para refletir a mudança na tabela
+                        return $record;
+                    })
+                    ->visible(fn ($record) => $record && $record->status === 'não compareceu'), // Só aparece se o status for "não compareceu"
                 ])
                 ->headerActions([
                     Tables\Actions\Action::make('export')

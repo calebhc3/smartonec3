@@ -40,3 +40,7 @@ Route::post('/logout', function () {
 })->name('logout');
 
 Route::redirect('/auth/login', '/login', 301);
+
+Route::redirect('/admin/login', '/login')->name('filament.admin.login');
+Route::redirect('/admin/logout', '/logout')->name('filament.admin.logout');
+Route::redirect('/admin/register', '/register')->name('filament.admin.register');

@@ -22,19 +22,22 @@ class AgendamentoFactory extends Factory
 
         // Define o status com base na data do exame
         $status = $dataExame < Carbon::now()
-            ? $this->faker->randomElement(['pendente', 'cancelado', 'não compareceu']) // Atrasado
-            : $this->faker->randomElement(['pendente', 'realizado', 'ASO ok', 'ASO enviado']); // No prazo ou concluído
+            ? $this->faker->randomElement([ 'cancelado', 'não compareceu']) // Atrasado
+            : $this->faker->randomElement(['agendado', 'ASO ok', 'ASO enviado']); // No prazo ou concluído
+
+            $estados = array_keys(self::getEstadosBrasileiros()); // Pega apenas as siglas dos estados
 
         return [
             'empresa_id' => Empresa::inRandomOrder()->first()->id,
-            'cidade_atendimento' => $this->faker->city, // Gera uma cidade aleatória
-            'estado_atendimento' => $this->faker->stateAbbr, // Gera uma sigla de estado aleatória
+            'cidade_atendimento' => $this->faker->randomElement(self::getCidadesBrasileiras()),
+            'estado_atendimento' => $this->faker->randomElement($estados), // Gera um estado válido
+            'clinica_agendada' => $this->faker->company, // Nome fictício para clínica
             'data_exame' => $dataExame,
             'horario_exame' => $dataExame->copy()->addHours(rand(1, 24))->format('H:i:s'),
             'nome_funcionario' => $this->faker->name, // Gera um nome aleatório
-            'contato_whatsapp' => $this->faker->phoneNumber, // Gera um número de telefone aleatório
-            'doc_identificacao_rg' => $this->faker->unique()->numerify('########'), // Gera um RG aleatório
-            'doc_identificacao_cpf' => $this->faker->unique()->numerify('###########'), // Gera um CPF aleatório
+            'contato_whatsapp' => $this->faker->regexify('\([1-9]{2}\) (?:9\d{4}|\d{4})-\d{4}'),
+            'doc_identificacao_rg' => $this->faker->regexify('\d{2}\.\d{3}\.\d{3}-\d'),
+            'doc_identificacao_cpf' => $this->faker->regexify('\d{3}\.\d{3}\.\d{3}-\d{2}'),
             'data_nascimento' => $this->faker->dateTimeBetween('-65 years', '-18 years')->format('Y-m-d'), // Gera uma data de nascimento aleatória
             'data_admissao' => $this->faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'), // Gera uma data de admissão aleatória
             'funcao' => $this->faker->jobTitle, // Gera uma função aleatória
@@ -48,6 +51,27 @@ class AgendamentoFactory extends Factory
             'data_devolutiva' => $this->faker->dateTimeBetween('now', '+30 days')->format('Y-m-d H:i:s'), // Gera uma data de devolutiva aleatória
             'comparecimento' => $this->faker->randomElement(['nao_informado', 'compareceu', 'nao_compareceu']),
             'user_id' => User::inRandomOrder()->first()->id,
+        ];
+    }
+    private static function getEstadosBrasileiros(): array
+    {
+        return [
+            'AC' => 'Acre', 'AL' => 'Alagoas', 'AP' => 'Amapá', 'AM' => 'Amazonas',
+            'BA' => 'Bahia', 'CE' => 'Ceará', 'DF' => 'Distrito Federal', 'ES' => 'Espírito Santo',
+            'GO' => 'Goiás', 'MA' => 'Maranhão', 'MT' => 'Mato Grosso', 'MS' => 'Mato Grosso do Sul',
+            'MG' => 'Minas Gerais', 'PA' => 'Pará', 'PB' => 'Paraíba', 'PR' => 'Paraná',
+            'PE' => 'Pernambuco', 'PI' => 'Piauí', 'RJ' => 'Rio de Janeiro', 'RN' => 'Rio Grande do Norte',
+            'RS' => 'Rio Grande do Sul', 'RO' => 'Rondônia', 'RR' => 'Roraima', 'SC' => 'Santa Catarina',
+            'SP' => 'São Paulo', 'SE' => 'Sergipe', 'TO' => 'Tocantins',
+        ];
+    }
+    private static function getCidadesBrasileiras(): array
+    {
+        return [
+            'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Salvador', 'Fortaleza', 'Curitiba',
+            'Recife', 'Porto Alegre', 'Brasília', 'Manaus', 'Belém', 'Goiânia', 'Natal',
+            'Florianópolis', 'Vitória', 'Campo Grande', 'Cuiabá', 'João Pessoa', 'Aracaju',
+            'Teresina', 'São Luís', 'Maceió', 'Boa Vista', 'Palmas', 'Rio Branco', 'Macapá',
         ];
     }
 }

@@ -57,12 +57,13 @@ class AgendamentoResource extends Resource
                 Forms\Components\DatePicker::make('data_exame')
                     ->required()
                     ->label('Data do Exame')
-                    ->after('today') // Exame deve ser no futuro
+                    ->minDate(now()->startOfDay()) // Permite datas a partir de hoje (incluindo hoje)
                     ->displayFormat('d/m/Y'),
     
                 Forms\Components\TimePicker::make('horario_exame')
                     ->required()
-                    ->label('Horário do Exame'),
+                    ->label('Horário do Exame')
+                    ->seconds(false),
     
                 Forms\Components\TextInput::make('clinica_agendada')
                     ->required()
@@ -89,8 +90,7 @@ class AgendamentoResource extends Resource
                 Forms\Components\TextInput::make('doc_identificacao_cpf')
                     ->required()
                     ->label('CPF')
-                    ->mask('999.999.999-99')
-                    ->rule('cpf'), // Usa uma validação de CPF Laravel
+                    ->mask('999.999.999-99'),
     
                 Forms\Components\DatePicker::make('data_nascimento')
                     ->required()
@@ -136,6 +136,7 @@ class AgendamentoResource extends Resource
                         ->label('Data e Hora da Solicitação')
                         ->default(now())
                         ->reactive()
+                        ->seconds(false)
                         ->afterStateUpdated(fn ($set) => $set('senha_confirmacao', null))
                         ->rules([
                             function ($get) {
@@ -201,6 +202,7 @@ class AgendamentoResource extends Resource
                 Forms\Components\DateTimePicker::make('data_devolutiva')
                     ->required()
                     ->label('Data e Hora da Devolutiva')
+                    ->seconds(false)
                     ->maxDate(now()),
     
                 Forms\Components\Select::make('comparecimento')
