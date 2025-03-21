@@ -13,6 +13,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\CustomVerifyEmail;
+use App\Notifications\CustomResetPassword;
 
 class User extends Authenticatable implements MustVerifyEmail, HasAvatar
 {
@@ -78,4 +80,15 @@ class User extends Authenticatable implements MustVerifyEmail, HasAvatar
     {
         return str_ends_with($this->email, '@yourdomain.com') && $this->hasVerifiedEmail();
     }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new CustomVerifyEmail());
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPassword($token));
+    }
+    
 }
