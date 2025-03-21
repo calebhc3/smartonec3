@@ -17,7 +17,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
 use App\Filament\Pages\WelcomePage;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 
@@ -65,7 +64,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentEditProfilePlugin::make(),
-                FilamentAccessManagementPanel::make()
             ])
             ->authMiddleware([
                 Authenticate::class,

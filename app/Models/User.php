@@ -10,16 +10,16 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Storage;
 use App\Notifications\CustomVerifyEmail;
 use App\Notifications\CustomResetPassword;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail, HasAvatar
+class User extends Authenticatable implements MustVerifyEmail
 {
+    use HasRoles;
     use HasApiTokens;
-    use FilamentUserHelpers; // Adiciona
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use HasProfilePhoto;
@@ -75,10 +75,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasAvatar
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return str_ends_with($this->email, '@yourdomain.com') && $this->hasVerifiedEmail();
     }
 
     public function sendEmailVerificationNotification()

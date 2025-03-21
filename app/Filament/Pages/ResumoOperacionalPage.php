@@ -14,10 +14,5 @@ class ResumoOperacionalPage extends Page
     protected static ?string $navigationGroup = 'Operação'; // Agrupa os itens
 
     protected static string $view = 'filament.pages.resumo-operacional-page'; // View da página
-
-    public static function canView(): bool
-    {
-        return auth()->user()->can('access_operational_summary');
-    }
     // Adicione métodos ou lógica específica da página, se necessário
 }

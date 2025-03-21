@@ -30,11 +30,6 @@ class AgendamentoResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
     protected static ?string $navigationGroup = 'Operação';
 
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('access_scheduling');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
