@@ -339,16 +339,16 @@ class AgendamentoResource extends Resource
                 ->icon('heroicon-o-plus-circle')
                 ->color('primary')
                 ->action(function ($record) {
-                    // Incrementa o contador de "não compareceu"
-                    $newCount = $record->nao_compareceu_count + 1;
+                    // Verifica se o número de faltas não atingiu o limite de 3
+                    if ($record->nao_compareceu_count < 3) {
+                        // Incrementa o contador de "não compareceu"
+                        $newCount = $record->nao_compareceu_count + 1;
             
-                    // Atualiza o valor no banco de dados
-                    $record->update(['nao_compareceu_count' => $newCount]);
-            
-                    // Retorna o registro atualizado para refletir a mudança na tabela
-                    return $record;
+                        // Atualiza o valor no banco de dados
+                        $record->update(['nao_compareceu_count' => $newCount]);
+                    }
                 })
-                ->visible(fn ($record) => $record && $record->status === 'não compareceu'), // Só aparece se o status for "não compareceu"
+                ->visible(fn ($record) => $record && $record->status === 'não compareceu' && $record->nao_compareceu_count < 3),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

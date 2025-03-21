@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use Filament\Pages\Dashboard as BaseDashboard;
 use App\Filament\Widgets\GerenciamentoUsuariosWidget;
 use App\Filament\Widgets\UltimasAtividadesWidget;
+use App\Filament\Widgets\ExclusoesRegistrosWidget;
 
 class PainelProdutividade extends BaseDashboard
 {
@@ -25,6 +26,7 @@ class PainelProdutividade extends BaseDashboard
         return [
             GerenciamentoUsuariosWidget::class,
             UltimasAtividadesWidget::class,
+            ExclusoesRegistrosWidget::class,
         ];
     }
 
