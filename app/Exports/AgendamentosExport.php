@@ -76,15 +76,17 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
             return [
                 'id' => $agendamento->id,
                 'empresa' => $agendamento->empresa ? $agendamento->empresa->nome : 'N/A',
+                'cnpj_unidade' => $agendamento->cnpj_unidade,
+                'nome_unidade' => $agendamento->nome_unidade, // Adiciona o nome da unidade
                 'cidade_atendimento' => $agendamento->cidade_atendimento,
                 'estado_atendimento' => $agendamento->estado_atendimento,
+                'data_nascimento' => $agendamento->data_nascimento ? \Carbon\Carbon::parse($agendamento->data_nascimento)->format('d/m/Y') : 'N/A',
                 'data_exame' => $agendamento->data_exame ? \Carbon\Carbon::parse($agendamento->data_exame)->format('d/m/Y') : 'N/A',
                 'horario_exame' => $agendamento->horario_exame,
                 'nome_funcionario' => $agendamento->nome_funcionario,
                 'contato_whatsapp' => $agendamento->contato_whatsapp,
                 'doc_identificacao_rg' => $agendamento->doc_identificacao_rg,
                 'doc_identificacao_cpf' => $agendamento->doc_identificacao_cpf,
-                'data_exame' => $agendamento->data_exame ? \Carbon\Carbon::parse($agendamento->data_exame)->format('d/m/Y') : 'N/A', // Verifica se não é nulo
                 'data_admissao' => $agendamento->data_admissao ? \Carbon\Carbon::parse($agendamento->data_admissao)->format('d/m/Y') : 'N/A',
                 'funcao' => $agendamento->funcao,
                 'setor' => $agendamento->setor,
@@ -92,13 +94,13 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
                 'status' => $agendamento->status,
                 'sla' => $agendamento->sla,
                 'user' => $agendamento->user ? $agendamento->user->name : 'N/A',
-                'data_solicitacao' => $agendamento->data_solicitacao ? \Carbon\Carbon::parse($agendamento->data_solicitacao)->format('d/m/Y') : 'N/A',
+                'data_solicitacao' => $agendamento->data_solicitacao ? \Carbon\Carbon::parse($agendamento->data_solicitacao)->format('d/m/Y H:i') : 'N/A', // Inclui hora
                 'nome_solicitante' => $agendamento->nome_solicitante,
+                'origem_agendamento' => $agendamento->origem_agendamento,
                 'email_solicitante' => $agendamento->email_solicitante,
                 'whatsapp_solicitante' => $agendamento->whatsapp_solicitante,
                 'data_devolutiva' => $agendamento->data_devolutiva ? \Carbon\Carbon::parse($agendamento->data_devolutiva)->format('d/m/Y') : 'N/A',
                 'clinica_agendada' => $agendamento->clinica_agendada,
-                'comparecimento' => $agendamento->comparecimento,
             ];
         });
     }
@@ -108,16 +110,17 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
         return [
             'ID',
             'Empresa',
-            'Unidade',
+            'CNPJ Unidade',
+            'Nome Unidade',
             'Cidade de Atendimento',
             'Estado de Atendimento',
+            'Data de Nascimento',
             'Data do Exame',
             'Horário do Exame',
             'Nome do Funcionário',
             'Contato WhatsApp',
             'RG',
             'CPF',
-            'Data de Nascimento',
             'Data de Admissão',
             'Função',
             'Setor',
@@ -127,18 +130,18 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
             'Usuário Responsável',
             'Data da Solicitação',
             'Nome do Solicitante',
+            'Origem do Agendamento',
             'E-mail do Solicitante',
             'WhatsApp do Solicitante',
             'Data da Devolutiva',
             'Clínica Agendada',
-            'Comparecimento',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
         // Aplica estilo ao cabeçalho
-        $sheet->getStyle('A1:Z1')->applyFromArray([
+        $sheet->getStyle('A1:AA1')->applyFromArray([
             'font' => [
                 'bold' => true, // Negrito
                 'color' => ['rgb' => 'FFFFFF'], // Cor da fonte (branco)
@@ -157,19 +160,19 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, // Alinhamento centralizado
             ],
         ]);
-
+    
         // Aplica estilo às linhas intercaladas (zebra stripes)
-        $sheet->getStyle('A2:Z' . ($sheet->getHighestRow()))
+        $sheet->getStyle('A2:AA' . ($sheet->getHighestRow()))
             ->applyFromArray([
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                     'startColor' => ['rgb' => 'F2F2F2'], // Cor de fundo cinza claro
                 ],
             ]);
-
+    
         // Aplica estilo às linhas pares (branco)
         for ($i = 2; $i <= $sheet->getHighestRow(); $i += 2) {
-            $sheet->getStyle('A' . $i . ':Z' . $i)
+            $sheet->getStyle('A' . $i . ':AA' . $i)
                 ->applyFromArray([
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -177,9 +180,9 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
                     ],
                 ]);
         }
-
-        // Aplica bordas a todas as células
-        $sheet->getStyle('A1:Z' . $sheet->getHighestRow())
+    
+        // Aplica bordas a todas as células de A até AA
+        $sheet->getStyle('A1:AA' . $sheet->getHighestRow())
             ->applyFromArray([
                 'borders' => [
                     'allBorders' => [
@@ -188,42 +191,45 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
                     ],
                 ],
             ]);
-
-        // Centraliza o texto em todas as células
-        $sheet->getStyle('A1:Z' . $sheet->getHighestRow())
+    
+        // Centraliza o texto em todas as células de A até AA
+        $sheet->getStyle('A1:AA' . $sheet->getHighestRow())
             ->getAlignment()
             ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     }
 
+
     public function columnWidths(): array
     {
         return [
-            'A' => 5,  // ID
-            'B' => 20, // Empresa
-            'C' => 20, // Unidade
-            'D' => 20, // Cidade de Atendimento
-            'E' => 5, // Estado de Atendimento
-            'F' => 15, // Data do Exame
+            'A' => 5, // Empresa
+            'B' => 25, // CNPJ da Unidade
+            'C' => 20, // Nome da Unidade
+            'D' => 30, // Cidade de Atendimento
+            'E' => 20,  // Estado de Atendimento
+            'F' => 5, // Data do Exame
             'G' => 15, // Horário do Exame
             'H' => 20, // Nome do Funcionário
             'I' => 15, // Contato WhatsApp
-            'J' => 15, // RG
-            'K' => 15, // CPF
+            'J' => 20, // RG
+            'K' => 20, // CPF
             'L' => 15, // Data de Nascimento
             'M' => 15, // Data de Admissão
             'N' => 20, // Função
-            'O' => 15, // Setor
+            'O' => 20, // Setor
             'P' => 15, // Tipo de Exame
             'Q' => 15, // Status
             'R' => 20, // SLA
             'S' => 20, // Usuário Responsável
             'T' => 20, // Data da Solicitação
-            'U' => 20, // Nome do Solicitante
-            'V' => 25, // E-mail do Solicitante
-            'W' => 20, // WhatsApp do Solicitante
-            'X' => 20, // Data da Devolutiva
-            'Y' => 25, // Clínica Agendada
-            'Z' => 15, // Comparecimento
+            'U' => 20, // Origem do Agendamento
+            'V' => 25, // Nome do Solicitante
+            'W' => 15, // E-mail do Solicitante
+            'X' => 30, // WhatsApp do Solicitante
+            'Y' => 20, // Data da Devolutiva
+            'Z' => 25, // Clínica Agendada
+            'AA' => 25, // Clínica Agendada
         ];
     }
+    
 }

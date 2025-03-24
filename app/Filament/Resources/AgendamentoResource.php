@@ -53,7 +53,7 @@ class AgendamentoResource extends Resource
 
                 TextInput::make('nome_unidade')
                     ->label('Nome da Unidade')
-                    ->disabled(),
+                    ->readonly(),
 
                 Forms\Components\Select::make('estado_atendimento')
                     ->options(self::getEstadosBrasileiros())
@@ -215,16 +215,7 @@ class AgendamentoResource extends Resource
                     ->label('Data e Hora da Devolutiva')
                     ->seconds(false)
                     ->maxDate(now()),
-    
-                Forms\Components\Select::make('comparecimento')
-                    ->label('Comparecimento')
-                    ->options([
-                        'nao_informado' => 'Não Informado',
-                        'compareceu' => 'Compareceu',
-                        'nao_compareceu' => 'Não Compareceu',
-                    ])
-                    ->default('nao_informado'),
-    
+
                 Forms\Components\Hidden::make('user_id')
                     ->default(auth()->id()),
             ]);

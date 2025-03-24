@@ -67,7 +67,6 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
         'whatsapp_solicitante',
         'data_devolutiva',
         'clinica_agendada',
-        'comparecimento',
 
     ];
 
