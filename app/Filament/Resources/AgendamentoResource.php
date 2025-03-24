@@ -23,6 +23,7 @@ use App\Imports\AgendamentosImport;
 use Illuminate\Support\Facades\Log;
 use Filament\Notifications\Notification;  // Correct import
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Http;
 
 class AgendamentoResource extends Resource
 {
@@ -38,7 +39,22 @@ class AgendamentoResource extends Resource
                     ->relationship('empresa', 'nome')
                     ->required()
                     ->label('Empresa'),
-    
+
+                    TextInput::make('cnpj_unidade')
+                    ->label('CNPJ da Unidade')
+                    ->required()
+                    ->mask('99.999.999/9999-99')
+                    ->live(debounce: 500)
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if (strlen(preg_replace('/\D/', '', $state)) === 14) {
+                            $set('nome_unidade', self::buscarNomeUnidade($state));
+                        }
+                    }),
+
+                TextInput::make('nome_unidade')
+                    ->label('Nome da Unidade')
+                    ->disabled(),
+
                 Forms\Components\Select::make('estado_atendimento')
                     ->options(self::getEstadosBrasileiros())
                     ->required()
@@ -531,5 +547,18 @@ class AgendamentoResource extends Resource
     
         return 'No Prazo';
     }
-    
+    public static function buscarNomeUnidade(string $cnpj): ?string
+    {
+        $token = '0e9a9921cdcaf47915ada588639404097eef2785052c31f9b3f1f5456ffec09f'; // Substitua pelo seu token da ReceitaWS
+
+        $response = Http::withoutVerifying()->get("https://www.receitaws.com.br/v1/cnpj/" . preg_replace('/\D/', '', $cnpj), [
+            'token' => $token,
+        ]);
+
+        if ($response->successful()) {
+            return $response->json()['nome'] ?? 'Não encontrado';
+        }
+
+        return 'Erro ao buscar CNPJ';
+    }
 }

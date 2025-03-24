@@ -42,6 +42,8 @@ class Agendamento extends Model implements AuditableContract // Implementa a int
 
     protected $fillable = [
         'empresa_id',
+        'cnpj_unidade',
+        'nome_unidade',
         'cidade_atendimento',
         'estado_atendimento',
         'data_exame',
