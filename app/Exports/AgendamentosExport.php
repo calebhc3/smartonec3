@@ -232,4 +232,5 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
         ];
     }
     
+    
 }

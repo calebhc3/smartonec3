@@ -22,7 +22,7 @@ Route::prefix('admin')->name('filament.admin.auth.')->middleware(['auth'])->grou
 });
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login'); // Redireciona para a rota de login
 });
 
 Route::middleware([
