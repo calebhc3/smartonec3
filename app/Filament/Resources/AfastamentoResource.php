@@ -2,21 +2,39 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AfastadoResource\Pages;
-use App\Models\Afastado;
+use App\Filament\Resources\AfastamentoResource\Pages;
+use App\Models\Afastamento;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Maatwebsite\Excel\Facades\Excel;
+use Filament\Actions\Action;
+use App\Exports\AfastamentoExport;
+use App\Imports\AfastamentoImport;
+use Filament\Actions\Notification;
+use Filament\Tables\Columns\TextInputColumn;
 
-class AfastadoResource extends Resource
+class AfastamentoResource extends Resource
 {
-    protected static ?string $model = Afastado::class;
+    protected static ?string $model = Afastamento::class;
 
     protected static ?string $navigationIcon = 'heroicon-c-user-minus';
 
-    protected static ?string $navigationGroup = 'Afastamentos';
+    protected static ?string $navigationGroup = 'Afastados';
 
     protected static ?int $navigationSort = 4;
+
+    protected static ?string $slug = 'afastamentos'; // Slug da URL
+
+    // Filament Update
+        public function updateComment($recordId, $comment)
+        {
+            $record = Afastamento::find($recordId);
+            if ($record) {
+                $record->comentario = $comment;
+                $record->save();
+            }
+        }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -108,20 +126,80 @@ class AfastadoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('cpf')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('cargo'),
-                Tables\Columns\BooleanColumn::make('afastada_atividades'),
+                Tables\Columns\TextColumn::make('data_carta_dut_enviada_assinatura')->label('Envio da carta de DUT para assinatura'),
+                // Exibe o comentário com opção de editar
+                Tables\Columns\TextColumn::make('comentario')
+                    ->label('Comentário')
+                    ->searchable(),
+                Tables\Columns\TextInputColumn::make('comentario')
+                    ->label('Editar Comentário'),
             ])
             ->filters([])
             ->actions([Tables\Actions\EditAction::make()])
+            ->headerActions([
+                Tables\Actions\Action::make('importar')
+                ->label('Importar Afastamentos')
+                ->form([
+                    Forms\Components\FileUpload::make('arquivo')
+                        ->label('Arquivo Excel')
+                        ->disk('public') // Salva em storage/app/public
+                        ->directory('uploads') // Salva os arquivos dentro de storage/app/public/uploads
+                        ->acceptedFileTypes([
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/vnd.ms-excel'
+                        ]) // Apenas arquivos Excel
+                        ->required(),
+                ])
+                ->action(function ($data) {
+                    try {
+                        // Obtém o caminho correto do arquivo sem incluir "public/"
+                        $filePath = storage_path('app/public/' . $data['arquivo']);
+            
+                        // Verifica se o arquivo realmente existe
+                        if (!file_exists($filePath)) {
+                            throw new \Exception("Arquivo não encontrado: {$filePath}");
+                        }
+            
+                        // Importa o arquivo Excel e passa o ID da empresa
+                        Excel::import(new AfastamentoImport ($data['empresa_id']), $filePath);
+            
+                        // Notificação de sucesso
+                        Notification::make()
+                            ->title('Importação concluída')
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Log::error('Erro na importação: ' . $e->getMessage());
+            
+                        Notification::make()
+                            ->title('Erro na importação')
+                            ->body('Erro: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),               
+                    Tables\Actions\Action::make('export')
+                    ->label('Exportar para Excel')
+                    ->icon('heroicon-m-inbox')
+                    ->action(function ($livewire) {
+                        // Obtém os filtros aplicados na tabela
+                        $filters = $livewire->tableFilters;
+                
+                        // Exporta os dados filtrados
+                        return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
+                    }),
+            ])
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25) // Define 25 registros por página como padrão
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAfastados::route('/'),
-            'create' => Pages\CreateAfastado::route('/create'),
-            'edit' => Pages\EditAfastado::route('/{record}/edit'),
+            'index' => Pages\ListAfastamentos::route('/'),
+            'create' => Pages\CreateAfastamento::route('/create'),
+            'edit' => Pages\EditAfastamento::route('/{record}/edit'),
         ];
     }
 }

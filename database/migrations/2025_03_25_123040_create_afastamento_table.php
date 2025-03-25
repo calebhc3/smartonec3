@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('afastados', function (Blueprint $table) {
+        Schema::create('afastamentos', function (Blueprint $table) {
             $table->id();
             
             // Dados Iniciais
@@ -79,6 +79,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('afastados');
+        Schema::dropIfExists('afastamentos');
     }
 };

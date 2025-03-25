@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             EmpresaSeeder::class,
             AgendamentoSeeder::class,
             PermissionSeeder::class,
+            AfastamentoSeeder::class,
         ]);
     }
 }
