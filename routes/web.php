@@ -3,7 +3,8 @@
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Mail\NotificacaoShopeeRetorno;
+use Illuminate\Support\Facades\Mail;
 
 Route::prefix('admin')->name('filament.admin.auth.')->middleware(['auth'])->group(function () {
     Route::get('/email/verify', function () {
@@ -45,3 +46,8 @@ Route::redirect('/auth/login', '/login', 301);
 Route::redirect('/admin/login', '/login')->name('filament.admin.login');
 Route::redirect('/admin/logout', '/logout')->name('filament.admin.logout');
 Route::redirect('/admin/register', '/register')->name('filament.admin.register');
+
+Route::get('/teste-email', function () {
+    Mail::to('seu-email@exemplo.com')->send(new NotificacaoShopeeRetorno(5));
+    return 'E-mail enviado com sucesso!';
+});

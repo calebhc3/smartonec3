@@ -4,28 +4,48 @@ namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use App\Models\Afastamento;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NotificacaoShopeeRetorno;
 
 class ToDoPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-check-circle';
-    protected static string $view = 'filament.pages.to-do-page'; // Certifique-se que está apontando para o Blade correto
+    protected static string $view = 'filament.pages.to-do-page'; // Certifique-se que o Blade está correto
     protected static ?string $navigationLabel = 'Lembretes de Tarefas';
     protected static ?string $title = 'Lembretes de Tarefas';
     protected static ?string $navigationGroup = 'Afastados';
 
-    // Método que passa os dados para a view
-    protected function getViewData(): array
+    public function mount()
     {
-        return [
-            'todos' => $this->getTodos(), // Garante que $todos esteja disponível no Blade
-        ];
+        $this->enviarNotificacao();
     }
 
-    // Método que busca os dados
-    protected function getTodos(): array
+    protected function getViewData(): array
     {
+        $afastamentos = $this->getAfastamentos();
+    
         return [
-
+            'todos' => [
+                [
+                    'label' => 'Afastamentos para notificação',
+                    'due' => $afastamentos->count(),
+                ]
+            ],
         ];
+    }
+    
+
+    protected function getAfastamentos()
+    {
+        return Afastamento::whereDate('notificar_shopee_retorno', today())->get();
+    }
+
+    protected function enviarNotificacao()
+    {
+        $quantidade = Afastamento::whereDate('notificar_shopee_retorno', today())->count();
+
+        if ($quantidade > 0) {
+            Mail::to('agendamentos@c3saude.com.br')->send(new NotificacaoShopeeRetorno($quantidade));
+        }
     }
 }
