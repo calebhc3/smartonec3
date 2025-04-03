@@ -10,12 +10,32 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+      - /var/www/vendor
+      - /var/www/node_modules
+      - /var/www/public/build
+    depends_on:
+      - db
+      - node
     networks:
       - laravel
     environment:
       - PHP_FPM_LISTEN=9000
 
+  node:
+    image: node:18
+    container_name: laravel_node
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: tail -f /dev/null
+    ports:
+      - "5175:5175"
+    networks:
+      - laravel
+
   nginx:
+    depends_on:
+      - app
     image: nginx:alpine
     container_name: laravel_nginx
     ports:
