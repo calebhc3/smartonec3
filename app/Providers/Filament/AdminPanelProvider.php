@@ -32,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->registration()
             ->colors([
-                'primary' => '#0097A7', // Azul Esverdeado
+                'primary' => '#40C9A2', // Azul Esverdeado
                 // Cor Secundária
                 'secondary' => '#6A1B9A', // Roxo
                 // Cor Neutra

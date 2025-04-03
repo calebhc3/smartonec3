@@ -18,3 +18,55 @@ nohup: ignoring input
   LARAVEL v12.1.1  plugin v1.2.0
 
   ➜  APP_URL: http://localhost
+6:40:23 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:40:23 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:40:25 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:40:25 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:40:31 PM [vite] (client) page reload storage/framework/views/4974b70ba536c0001fc215547c9c368a.php
+6:40:38 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:40:38 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:40:40 PM [vite] (client) page reload storage/framework/views/4974b70ba536c0001fc215547c9c368a.php
+6:41:27 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:41:27 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:41:31 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:41:31 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:41:36 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:41:36 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:41:39 PM [vite] (client) page reload storage/framework/views/4974b70ba536c0001fc215547c9c368a.php
+6:41:46 PM [vite] full reload resources/views/components/authentication-card-logo.blade.php
+6:41:46 PM [vite] (client) page reload resources/views/components/authentication-card-logo.blade.php
+6:41:48 PM [vite] (client) page reload storage/framework/views/4974b70ba536c0001fc215547c9c368a.php
+6:43:01 PM [vite] full reload resources/views/components/button.blade.php
+6:43:01 PM [vite] (client) page reload resources/views/components/button.blade.php
+6:43:02 PM [vite] (client) page reload storage/framework/views/f994ee19e8dc390c0d5686e7023ca1e2.php
+6:43:42 PM [vite] full reload resources/views/auth/login.blade.php
+6:43:42 PM [vite] (client) page reload resources/views/auth/login.blade.php
+6:43:43 PM [vite] full reload resources/views/auth/login.blade.php
+6:43:43 PM [vite] (client) page reload resources/views/auth/login.blade.php
+6:43:45 PM [vite] full reload resources/views/auth/login.blade.php
+6:43:45 PM [vite] (client) page reload resources/views/auth/login.blade.php
+6:43:47 PM [vite] full reload resources/views/auth/login.blade.php
+6:43:47 PM [vite] (client) page reload resources/views/auth/login.blade.php
+6:43:49 PM [vite] (client) page reload storage/framework/views/e3aa6c2fd900150247d6e06b29b5b3a5.php
+6:44:45 PM [vite] full reload resources/views/layouts/guest.blade.php
+6:44:45 PM [vite] (client) page reload resources/views/layouts/guest.blade.php
+6:44:49 PM [vite] (client) page reload storage/framework/views/c9270fede9dce183a8efc09ed18b3d39.php
+6:45:41 PM [vite] full reload resources/views/layouts/guest.blade.php
+6:45:41 PM [vite] (client) page reload resources/views/layouts/guest.blade.php
+6:45:43 PM [vite] (client) page reload storage/framework/views/c9270fede9dce183a8efc09ed18b3d39.php
+6:45:54 PM [vite] full reload resources/views/layouts/app.blade.php
+6:45:54 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:45:59 PM [vite] full reload resources/views/layouts/app.blade.php
+6:45:59 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:46:06 PM [vite] full reload resources/views/layouts/app.blade.php
+6:46:06 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:46:09 PM [vite] full reload resources/views/layouts/app.blade.php
+6:46:09 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:46:15 PM [vite] full reload resources/views/layouts/guest.blade.php
+6:46:15 PM [vite] (client) page reload resources/views/layouts/guest.blade.php
+6:46:24 PM [vite] full reload resources/views/layouts/app.blade.php
+6:46:24 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:46:26 PM [vite] full reload resources/views/layouts/app.blade.php
+6:46:26 PM [vite] (client) page reload resources/views/layouts/app.blade.php
+6:46:28 PM [vite] full reload resources/views/layouts/app.blade.php
+6:46:28 PM [vite] (client) page reload resources/views/layouts/app.blade.php
