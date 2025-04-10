@@ -13,7 +13,12 @@ use App\Exports\AfastamentoExport;
 use App\Imports\AfastamentoImport;
 use Filament\Actions\Notification;
 use Filament\Tables\Columns\TextInputColumn;
-
+use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use carbon\Carbon;
 class AfastamentoResource extends Resource
 {
     protected static ?string $model = Afastamento::class;
@@ -44,7 +49,40 @@ class AfastamentoResource extends Resource
                 Forms\Components\Section::make('Dados Iniciais')
                     ->schema([
                         Forms\Components\TextInput::make('nome')->required(),
-                        Forms\Components\TextInput::make('cpf')->required()->unique(),
+                        Forms\Components\TextInput::make('cpf')->required(),
+                        DatePicker::make('data_nascimento')
+                        ->label('Data de Nascimento')
+                        ->reactive()
+                        ->afterStateUpdated(function (Carbon|string|null $state, Set $set) {
+                            if (!$state) {
+                                $set('idade', null);
+                                return;
+                            }
+                    
+                            $dataNascimento = Carbon::parse($state);
+                            $idade = $dataNascimento->age;
+                    
+                            $set('idade', $idade);
+                        }),
+                    
+                    TextInput::make('idade')
+                        ->label('Idade')
+                        ->numeric()
+                        ->disabled(), // impede edição manual, já que é calculado automaticamente
+                        Forms\Components\TextInput::make('cnpj_unidade')
+                        ->label('CNPJ da Unidade')
+                        ->required()
+                        ->mask('99.999.999/9999-99')
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if (strlen(preg_replace('/\D/', '', $state)) === 14) {
+                                $set('nome_unidade', self::buscarNomeUnidade($state));
+                            }
+                        }),
+    
+                        Forms\Components\TextInput::make('nome_unidade')
+                        ->label('Nome da Unidade')
+                        ->readonly(),    
                         Forms\Components\DatePicker::make('data_admissao'),
                         Forms\Components\TextInput::make('cargo'),
                         Forms\Components\TextInput::make('setor'),
@@ -54,26 +92,34 @@ class AfastamentoResource extends Resource
                             'Outro' => 'Outro',
                         ]),
                         Forms\Components\DatePicker::make('data_psc'),
-                        Forms\Components\DatePicker::make('data_notificacao'),
-                        Forms\Components\TextInput::make('andamento_processo_shopee'),
+                        Forms\Components\DatePicker::make('data_notificacao')
+                        ->label('Data de Notificação do Início do Afastamento')
+                        ->default(now())
+                        ->reactive(),
                         Forms\Components\TextInput::make('codigo'),
-                        Forms\Components\DatePicker::make('data_nascimento'),
-                        Forms\Components\TextInput::make('idade')->numeric(),
                     ])
                     ->collapsible(),
 
                 // Seção 2: Controle Interno C3 Saúde
                 Forms\Components\Section::make('Controle Interno C3 Saúde')
                     ->schema([
-                        Forms\Components\DatePicker::make('data_carta_dut_enviada_assinatura')->nullable(),
-                        Forms\Components\DatePicker::make('data_carta_dut_recebida_assinada')->nullable(),
-                        Forms\Components\DatePicker::make('data_carta_dut_enviada_colaborador')->nullable(),
-                        Forms\Components\DatePicker::make('data_ultimo_dia_trabalhado')->nullable(),
-                        Forms\Components\Toggle::make('condicao_abertura_cat'),
-                        Forms\Components\TextInput::make('cid'),
+                        Forms\Components\DatePicker::make('data_carta_dut_enviada_assinatura')->nullable()->label('Data do Envio da Carta DUT para Assinatura'),
+                        Forms\Components\DatePicker::make('data_carta_dut_recebida_assinada')->nullable()->label('Data do Recebimento da Carta DUT'),
+                        Forms\Components\DatePicker::make('data_carta_dut_enviada_colaborador')->nullable()->label('Data do Envio da Carta DUT para Colaborador'),
+                        Forms\Components\DatePicker::make('data_ultimo_dia_trabalhado')->nullable()->label('Data do Último Dia Trabalhado'),
+                        Forms\Components\Toggle::make('condicao_abertura_cat')->label('Condição de Abertura CAT'),
+                        Forms\Components\TextInput::make('cid')->label('CID'),
                         Forms\Components\TextInput::make('patologia'),
-                        Forms\Components\Textarea::make('descricao_patologia'),
-                        Forms\Components\TextInput::make('especie_beneficio_inss'),
+                        Forms\Components\Select::make('especie_beneficio_inss')
+                        ->label('Espécie do Benefício INSS')
+                        ->options([
+                            'b31_auxilio_doenca_previdenciario' => 'B31 - Auxílio Doença Previdenciário',
+                            'b91_auxilio_doenca_acidentario' => 'B91 - Auxílio Doença Acidentário',
+                            'b32_aposentadoria_por_invalidez' => 'B32 - Aposentadoria por Invalidez',
+                        ])
+                        ->searchable()
+                        ->preload()
+                        ->required(),                    
                         Forms\Components\Toggle::make('afastada_atividades'),
                         Forms\Components\Toggle::make('afastados_inss'),
                         Forms\Components\Toggle::make('limbo_previdenciario'),
@@ -86,11 +132,34 @@ class AfastamentoResource extends Resource
                         Forms\Components\Toggle::make('alta_antecipada'),
                         Forms\Components\DatePicker::make('entrada_pericia'),
                         Forms\Components\DatePicker::make('data_pericia'),
-                        Forms\Components\TextInput::make('tipo_pericia'),
+                        Forms\Components\Select::make('tipo_pericia')
+                        ->label('Tipo de Perícia')
+                        ->options([
+                            'presencial' => 'Presencial',
+                            'documental' => 'Documental',
+                            'a_iniciar' => 'A Iniciar',
+                            'nao_realizada' => 'Não Realizada',
+                        ])
+                        ->required()
+                        ->searchable(),
                         Forms\Components\Toggle::make('pericia_realizada'),
                         Forms\Components\TextInput::make('numero_beneficio'),
-                        Forms\Components\TextInput::make('status_pericia'),
-                        Forms\Components\Textarea::make('motivo'),
+                        Forms\Components\Select::make('status_pericia')
+                        ->label('Status da Perícia')
+                        ->options([
+                            'deferido' => 'Deferido',
+                            'indeferido' => 'Indeferido',
+                            'em_analise' => 'Em Análise',
+                            'pericia_cancelada' => 'Perícia Cancelada',
+                            'em_agendamento' => 'Em Agendamento',
+                        ])
+                        ->required()
+                        ->searchable(),
+                        Forms\Components\Select::make('motivo')
+                        ->options( [
+                            'constatao_de_incapacidade_laborativa' => 'Constatação de Incapacidade Laborativa',
+                            'nao_constatacao_da_Incapacidade_laborativa' => 'Não Constatação da Incapacidade Laborativa',
+                        ]),
                         Forms\Components\Toggle::make('nexo_tecnico'),
                         Forms\Components\Toggle::make('contestacao'),
                     ])
@@ -103,7 +172,11 @@ class AfastamentoResource extends Resource
                         Forms\Components\DatePicker::make('notificar_shopee_retorno'),
                         Forms\Components\DatePicker::make('data_prevista_exame_retorno'),
                         Forms\Components\TextInput::make('clinica'),
-                        Forms\Components\DatePicker::make('afastamento_inicial'),
+                        Forms\Components\Select::make('afastamento_inicial')
+                        ->options([
+                            'Afastado' => 'Afastado',
+                            'Falta_histórico' => 'Falta Histórico',
+                        ]),
                         Forms\Components\DatePicker::make('data_recebimento_aso'),
                         Forms\Components\DatePicker::make('data_envio_aso_shopee'),
                     ])
@@ -112,9 +185,31 @@ class AfastamentoResource extends Resource
                 // Seção 5: Informação para Folha de Pagamento
                 Forms\Components\Section::make('Informação para Folha de Pagamento')
                     ->schema([
-                        Forms\Components\TextInput::make('status_atual'),
+                        Forms\Components\Select::make('status_atual')
+                        ->label('Status Atual')
+                        ->options([
+                            'recorrente' => 'Recorrente',
+                            'afastado' => 'Afastado',
+                            'liberado_ao_retorno' => 'Liberado ao Retorno',
+                            'desligado' => 'Desligado',
+                            'liberado_com_termo' => 'Liberado com Termo',
+                            'liberado_com_restricao' => 'Liberado com Restrição',
+                            'licenca_maternidade' => 'Licença Maternidade',
+                            'pericia_cancelada' => 'Perícia Cancelada',
+                            'rescisao_indireta' => 'Rescisão Indireta',
+                            'falecimento' => 'Falecimento',
+                        ])
+                        ->required()
+                        ->searchable(),
                         Forms\Components\DatePicker::make('data_retorno_atividades'),
                         Forms\Components\TextInput::make('periodo_restricao'),
+                        Forms\Components\TextInput::make('comentario')
+                            ->label('Comentário')
+                            ->reactive()
+                            ->afterStateUpdated(function (string $state, Set $set) {
+                                // Atualiza o comentário no banco de dados
+                                $set('comentario', $state);
+                            }),
                     ])
                     ->collapsible(),
             ]);
@@ -126,16 +221,62 @@ class AfastamentoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('cpf')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('data_carta_dut_enviada_assinatura')->label('Envio da carta de DUT para assinatura'),
-                // Exibe o comentário com opção de editar
-                Tables\Columns\TextColumn::make('comentario')
-                    ->label('Comentário')
-                    ->searchable(),
-                Tables\Columns\TextInputColumn::make('comentario')
-                    ->label('Editar Comentário'),
+                Tables\Columns\BadgeColumn::make('status_pericia')
+                ->label('Status da Perícia')
+                ->formatStateUsing(function (string $state): string {
+                    return match ($state) {
+                        'deferido' => 'Deferido',
+                        'indeferido' => 'Indeferido',
+                        'em_analise' => 'Em Análise',
+                        'pericia_cancelada' => 'Perícia Cancelada',
+                        'em_agendamento' => 'Em Agendamento',
+                        default => ucfirst(str_replace('_', ' ', $state)),
+                    };
+                })
+                ->colors([
+                    'success' => ['deferido'],
+                    'danger' => ['indeferido', 'pericia_cancelada'],
+                    'warning' => ['em_analise', 'em_agendamento'],
+                ]),
+                Tables\Columns\BadgeColumn::make('status_atual')
+                ->label('Status Atual')
+                ->formatStateUsing(function (string $state): string {
+                    return match ($state) {
+                        'recorrente' => 'Recorrente',
+                        'afastado' => 'Afastado',
+                        'liberado_ao_retorno' => 'Liberado ao Retorno',
+                        'desligado' => 'Desligado',
+                        'liberado_com_termo' => 'Liberado com Termo',
+                        'liberado_com_restricao' => 'Liberado com Restrição',
+                        'licenca_maternidade' => 'Licença Maternidade',
+                        'pericia_cancelada' => 'Perícia Cancelada',
+                        'rescisao_indireta' => 'Rescisão Indireta',
+                        'falecimento' => 'Falecimento',
+                        default => ucfirst(str_replace('_', ' ', $state)),
+                    };
+                })
+                ->colors([
+                    'primary' => [
+                        'recorrente',
+                        'liberado_ao_retorno',
+                        'liberado_com_termo',
+                        'liberado_com_restricao',
+                    ],
+                    'warning' => [
+                        'afastado',
+                        'licenca_maternidade',
+                    ],
+                    'danger' => [
+                        'desligado',
+                        'rescisao_indireta',
+                        'falecimento',
+                    ],
+                    'gray' => [
+                        'pericia_cancelada',
+                    ],
+                ]),
             ])
             ->filters([])
-            ->actions([Tables\Actions\EditAction::make()])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
                 ->label('Importar Afastamentos')
@@ -192,6 +333,21 @@ class AfastamentoResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25) // Define 25 registros por página como padrão
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
+    }
+
+    public static function buscarNomeUnidade(string $cnpj): ?string
+    {
+        $token = '0e9a9921cdcaf47915ada588639404097eef2785052c31f9b3f1f5456ffec09f'; // Substitua pelo seu token da ReceitaWS
+
+        $response = Http::withoutVerifying()->get("https://www.receitaws.com.br/v1/cnpj/" . preg_replace('/\D/', '', $cnpj), [
+            'token' => $token,
+        ]);
+
+        if ($response->successful()) {
+            return $response->json()['nome'] ?? 'Não encontrado';
+        }
+
+        return 'Erro ao buscar CNPJ';
     }
 
     public static function getPages(): array
