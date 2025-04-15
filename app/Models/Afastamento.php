@@ -21,5 +21,9 @@ class Afastamento extends Model
         'afastamento_inicial', 'data_recebimento_aso', 'data_envio_aso_shopee',
         'status_atual', 'data_retorno_atividades', 'periodo_restricao',
     ];
+    protected $casts = [
+        'is_prorrogado' => 'boolean',
+    ];
+    
 }
 

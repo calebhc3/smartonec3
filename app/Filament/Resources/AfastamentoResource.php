@@ -8,7 +8,7 @@ use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Maatwebsite\Excel\Facades\Excel;
-use Filament\Actions\Action;
+use Filament\Tables\Actions\Action;
 use App\Exports\AfastamentoExport;
 use App\Imports\AfastamentoImport;
 use Filament\Actions\Notification;
@@ -19,6 +19,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use carbon\Carbon;
+
 class AfastamentoResource extends Resource
 {
     protected static ?string $model = Afastamento::class;
@@ -220,7 +221,7 @@ class AfastamentoResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nome')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('cpf')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('cpf')->sortable()->searchable()->label('CPF'),
                 Tables\Columns\BadgeColumn::make('status_pericia')
                 ->label('Status da Perícia')
                 ->formatStateUsing(function (string $state): string {
@@ -277,6 +278,33 @@ class AfastamentoResource extends Resource
                 ]),
             ])
             ->filters([])
+            ->actions([
+                Action::make('prorrogar')
+                    ->label('Prorrogar')
+                    ->icon('heroicon-o-plus-circle')
+                    ->modalHeading('Prorrogar Afastamento')
+                    ->modalSubmitActionLabel('Confirmar')
+                    ->form([
+                        Forms\Components\DatePicker::make('nova_data')
+                            ->label('Nova data de término do benefício')
+                            ->required(),
+                    ])
+                    ->action(function (array $data, \App\Models\Afastamento $record): void {
+                        // Atualiza o registro atual como prorrogado
+                        $record->update([
+                            'is_prorrogado' => true,
+                        ]);
+            
+                        // Clona o afastamento com a nova data
+                        $novoAfastamento = $record->replicate([
+                            'termino_previsto_beneficio' => $data['nova_data'],
+                        ]);
+                        $novoAfastamento->termino_previsto_beneficio = $data['nova_data'];
+                        $novoAfastamento->is_prorrogado = false;
+                        $novoAfastamento->save();
+                    })
+                    ->visible(fn (\App\Models\Afastamento $record) => !$record->is_prorrogado),
+            ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
                 ->label('Importar Afastamentos')
