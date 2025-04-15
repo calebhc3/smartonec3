@@ -22,19 +22,16 @@ class ToDoPage extends Page
 
     protected function getViewData(): array
     {
-        $afastamentos = $this->getAfastamentos();
+        $hoje = today();
     
         return [
-            'todos' => [
-                [
-                    'label' => 'Afastamentos para notificação',
-                    'due' => $afastamentos->count(),
-                ]
-            ],
+            'afastamentos_15_dias' => Afastamento::whereDate('termino_previsto_beneficio', $hoje->copy()->addDays(15))->get(),
+            'afastamentos_10_dias' => Afastamento::whereDate('termino_previsto_beneficio', $hoje->copy()->addDays(10))->get(),
+            'notificacoes_hoje' => Afastamento::whereDate('notificar_shopee_retorno', $hoje)->get(),
+            'ultimas_notificacoes' => Afastamento::latest()->take(10)->get(), // ajustar se tiver outra tabela
         ];
     }
     
-
     protected function getAfastamentos()
     {
         return Afastamento::whereDate('notificar_shopee_retorno', today())->get();
@@ -48,4 +45,11 @@ class ToDoPage extends Page
             Mail::to('agendamentos@c3saude.com.br')->send(new NotificacaoShopeeRetorno($quantidade));
         }
     }
+    protected function getHeaderWidgets(): array
+{
+    return [
+        \App\Filament\Widgets\TarefasDoDiaWidget::class,
+        \App\Filament\Widgets\UltimasNotificacoesWidget::class,
+    ];
+}
 }
