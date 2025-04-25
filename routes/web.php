@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Mail\NotificacaoShopeeRetorno;
 use Illuminate\Support\Facades\Mail;
 
+
 Route::prefix('admin')->name('filament.admin.auth.')->middleware(['auth'])->group(function () {
     Route::get('/email/verify', function () {
         return view('auth.verify-email');

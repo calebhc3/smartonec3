@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Notifications\CustomVerifyEmail;
 use App\Notifications\CustomResetPassword;
 use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     use HasRoles;
     use HasApiTokens;
@@ -86,5 +87,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new CustomResetPassword($token));
     }
-    
+
+    public function canAccessPanel(\Filament\Panel $panel): bool
+    {
+        return $this->hasVerifiedEmail() || $this->hasAnyRole(['Admin', 'Gestão', 'Busca', 'Afastamentos']);
+    }
+
 }
