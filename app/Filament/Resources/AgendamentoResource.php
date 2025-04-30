@@ -87,7 +87,6 @@ class AgendamentoResource extends Resource
                     ->maxLength(150),
     
                 Forms\Components\TextInput::make('contato_whatsapp')
-                    ->required()
                     ->label('Contato WhatsApp')
                     ->mask('(99) 99999-9999')
                     ->rule('regex:/^\(\d{2}\) \d{5}-\d{4}$/'),
@@ -110,7 +109,6 @@ class AgendamentoResource extends Resource
                     ->maxDate(now()->subYears(18)), // Apenas maiores de idade
     
                 Forms\Components\DatePicker::make('data_admissao')
-                    ->required()
                     ->label('Data de Admissão')
                     ->displayFormat('d/m/Y')
                     ->beforeOrEqual('today'),

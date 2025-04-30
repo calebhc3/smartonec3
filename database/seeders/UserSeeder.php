@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class UserSeeder extends Seeder
 {
@@ -39,18 +40,35 @@ class UserSeeder extends Seeder
             ]
         );
         $admin->assignRole('Admin');
-
-        // Criar usuário de Gestão
-        $gestao = User::firstOrCreate(
-            ['email' => 'gestao@c3saude.com.br'],
+        $gestores = [
             [
-                'name' => 'Usuário Gestão',
-                'password' => Hash::make('Gestao123!'),
-                'email_verified_at' => now(),
-                'remember_token' => Str::random(10),
-            ]
-        );
-        $gestao->assignRole('Gestão');
+                'name' => 'Gestor 1',
+                'email' => 'agendamento1@c3saude.com.br',
+                'password' => 'Gestor123!'
+            ],
+            [
+                'name' => 'Gestor 2',
+                'email' => 'agendamento2@c3saude.com.br',
+                'password' => 'Gestor123!'
+            ],
+            [
+                'name' => 'Gestor 3',
+                'email' => 'agendamento3@c3saude.com.br',
+                'password' => 'Gestor123!'
+            ],
+        ];
+        foreach ($gestores as $gestor) {
+            $user = User::firstOrCreate(
+                ['email' => $gestor['email']],
+                [
+                    'name' => $gestor['name'],
+                    'password' => Hash::make($gestor['password']),
+                    'email_verified_at' => now(),
+                    'remember_token' => Str::random(10),
+                ]
+            );
+            $user->assignRole('Gestão');
+        }
 
         // Criar usuário de Busca
         $busca = User::firstOrCreate(
