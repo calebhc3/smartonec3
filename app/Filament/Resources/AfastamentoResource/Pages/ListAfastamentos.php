@@ -11,12 +11,7 @@ class ListAfastamentos extends ListRecords
 {
     protected static string $resource = AfastamentoResource::class;
 
-    protected function getHeaderWidgets(): array
-{
-    return [
-        AfastamentosHeaderOverview::class,
-    ];
-}
+
     protected function getHeaderActions(): array
     {
         return [

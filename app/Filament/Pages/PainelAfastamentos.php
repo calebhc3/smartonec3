@@ -18,7 +18,12 @@ class PainelAfastamentos extends Page implements Tables\Contracts\HasTable
     protected static string $view = 'filament.pages.painel-afastamentos';
     protected static ?string $navigationGroup = 'Afastados';
 
-
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            AfastamentosHeaderOverview::class,
+        ];
+    }
     protected function getTableQuery(): Builder
     {
         return Afastamento::query()->latest();

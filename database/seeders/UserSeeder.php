@@ -42,17 +42,17 @@ class UserSeeder extends Seeder
         $admin->assignRole('Admin');
         $gestores = [
             [
-                'name' => 'Gestor 1',
+                'name' => 'Marcondes',
+                'email' => 'agendamento@c3saude.com.br',
+                'password' => 'Gestor123!'
+            ],
+            [
+                'name' => 'João',
                 'email' => 'agendamento1@c3saude.com.br',
                 'password' => 'Gestor123!'
             ],
             [
-                'name' => 'Gestor 2',
-                'email' => 'agendamento2@c3saude.com.br',
-                'password' => 'Gestor123!'
-            ],
-            [
-                'name' => 'Gestor 3',
+                'name' => 'Jennifer',
                 'email' => 'agendamento3@c3saude.com.br',
                 'password' => 'Gestor123!'
             ],
