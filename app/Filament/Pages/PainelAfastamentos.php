@@ -7,6 +7,8 @@ use Filament\Pages\Page;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
+use App\Filament\Widgets\AfastamentosHeaderOverview;
 
 class PainelAfastamentos extends Page implements Tables\Contracts\HasTable
 {
