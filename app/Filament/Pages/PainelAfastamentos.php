@@ -9,26 +9,89 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use App\Filament\Widgets\AfastamentosHeaderOverview;
+use Illuminate\Contracts\View\View;
+use Livewire\WithPagination;
+use Filament\Forms;
+use Filament\Widgets\StatsOverviewWidget\Card;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Table;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\Filter;
+use Livewire\Livewire;
 
 class PainelAfastamentos extends Page implements Tables\Contracts\HasTable
 {
-    use Tables\Concerns\InteractsWithTable;
+    use InteractsWithTable;
 
+    public ?string $dataInicial = null;
+    public ?string $dataFinal = null;
+
+    public ?string $statusFiltro = null;
+    public string $filtroStatus = ''; // Estado compartilhado
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $title = 'Painel de Afastamentos';
     protected static ?string $slug = 'painel-afastamentos';
     protected static string $view = 'filament.pages.painel-afastamentos';
     protected static ?string $navigationGroup = 'Afastados';
 
-    protected function getHeaderWidgets(): array
+    public function updatedDataInicial($value)
+    {
+        $this->dispatch('filtrosAtualizados', payload: [
+            'dataInicial' => $this->dataInicial,
+            'dataFinal' => $this->dataFinal,
+        ]);        
+    }
+
+    public function updatedDataFinal($value)
+    {
+        $this->dispatch('filtrosAtualizados', payload: [
+            'dataInicial' => $this->dataInicial,
+            'dataFinal' => $this->dataFinal,
+        ]);
+    }
+
+    public function getStatusCounts(): array
+    {
+        return $this->getTableQuery()
+            ->select('status_atual', \DB::raw('count(*) as total'))
+            ->groupBy('status_atual')
+            ->pluck('total', 'status_atual')
+            ->toArray();
+    }
+
+    protected function getTableFilters(): array
     {
         return [
-            AfastamentosHeaderOverview::class,
+
+            Filter::make('data_psc_periodo')
+            ->label('Período PSC')
+            ->form([
+                DatePicker::make('data_inicio')->label('Início'),
+                DatePicker::make('data_fim')->label('Fim'),
+            ])
+            ->query(function (Builder $query, array $data) {
+                $this->dataInicial = $data['data_inicio'] ?? null;
+                $this->dataFinal = $data['data_fim'] ?? null;
+            
+                // 🔄 Emite evento Livewire para o widget escutar
+                $this->dispatch('filtrosAtualizados', payload: [
+                    'dataInicial' => $this->dataInicial,
+                    'dataFinal' => $this->dataFinal,
+                ]);                
+            
+                return $query
+                    ->when($this->dataInicial, fn ($q) => $q->whereDate('data_psc', '>=', $this->dataInicial))
+                    ->when($this->dataFinal, fn ($q) => $q->whereDate('data_psc', '<=', $this->dataFinal));
+            }),
         ];
-    }
+    }    
+
     protected function getTableQuery(): Builder
     {
-        return Afastamento::query()->latest();
+        return Afastamento::query()
+            ->when($this->statusFiltro, fn ($query) =>
+                $query->where('status_atual', $this->statusFiltro)
+            );
     }
 
     protected function getTableColumns(): array
@@ -141,30 +204,18 @@ class PainelAfastamentos extends Page implements Tables\Contracts\HasTable
     {
         return 'Nenhum afastamento encontrado';
     }
-    protected function getTableEmptyStateDescription(): ?string
-    {
-        return 'Não há afastamentos cadastrados no sistema.';
-    }
-    protected function getTableActions(): array
-    {
-        return []; // Sem botões de editar/excluir
-    }
 
-    protected function getTableFilters(): array
+    protected function getHeaderWidgets(): array
     {
         return [
-            Tables\Filters\SelectFilter::make('status')
-                ->label('Status')
-                ->options([
-                    'ativo' => 'Ativo',
-                    'encerrado' => 'Encerrado',
-                    'prorrogado' => 'Prorrogado',
-                ]),
+            AfastamentosHeaderOverview::make(),
         ];
     }
+    
 
     protected function isTablePaginationEnabled(): bool
     {
         return true;
     }
+
 }
