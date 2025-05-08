@@ -299,7 +299,8 @@ class AfastamentoResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
-                ->label('Importar Afastamentos')
+                ->label('Importar')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->form([
                     Forms\Components\FileUpload::make('arquivo')
                         ->label('Arquivo Excel')
@@ -339,16 +340,13 @@ class AfastamentoResource extends Resource
                             ->send();
                     }
                 }),               
-                    Tables\Actions\Action::make('export')
-                    ->label('Exportar para Excel')
-                    ->icon('heroicon-m-inbox')
-                    ->action(function ($livewire) {
-                        // Obtém os filtros aplicados na tabela
-                        $filters = $livewire->tableFilters;
-                
-                        // Exporta os dados filtrados
-                        return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
-                    }),
+            //Tables\Actions\Action::make('export')
+            //->label('Exportar')
+            //->icon('heroicon-o-arrow-up-tray')
+            //->action(function ($livewire) {
+            //$filters = $livewire->tableFilters;
+            //return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
+            //}),
             ])
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25) // Define 25 registros por página como padrão
