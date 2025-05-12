@@ -10,14 +10,9 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        // Criação dos perfis
+        // Criando os cargos/roles
         $gestao = Role::create([
             'name' => 'Gestão',
-            'guard_name' => 'web',
-        ]);
-
-        $operacional = Role::create([
-            'name' => 'Operacional',
             'guard_name' => 'web',
         ]);
 
@@ -26,20 +21,40 @@ class RoleSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
-        // Atribuir permissões ao perfil Gestão
+        $agendamento = Role::create([
+            'name' => 'Agendamento',
+            'guard_name' => 'web',
+        ]);
+
+        $afastamento = Role::create([
+            'name' => 'Afastamento',
+            'guard_name' => 'web',
+        ]);
+
+        $shopee = Role::create([
+            'name' => 'Shopee',
+            'guard_name' => 'web',
+        ]);
+
+        // Permissões atribuídas a cada role
         $gestao->givePermissionTo([
-            'access_all', // Acesso a tudo
+            'access_all', // Admin master
         ]);
 
-        // Atribuir permissões ao perfil Operacional
-        $operacional->givePermissionTo([
-            'access_scheduling', // CRUD de agendamentos
-            'access_operational_summary', // Painel de resumo operacional
-        ]);
-
-        // Atribuir permissões ao perfil Busca
         $busca->givePermissionTo([
-            'access_aso_search', // Painel de busca de ASO
+            'access_aso_search', // Painel de busca de ASOs
+        ]);
+
+        $agendamento->givePermissionTo([
+            'access_scheduling', // CRUD de agendamentos
+        ]);
+
+        $afastamento->givePermissionTo([
+            'access_leave_management', // Gestão de afastamentos
+        ]);
+
+        $shopee->givePermissionTo([
+            'access_shopee_integration', // Permissões específicas da Shopee
         ]);
     }
 }

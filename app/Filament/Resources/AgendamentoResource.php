@@ -355,7 +355,8 @@ class AgendamentoResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
-                ->label('Importar Agendamentos')
+                ->label('Importar')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->form([
                     Forms\Components\Select::make('empresa_id')
                         ->label('Selecione a Empresa')
@@ -407,8 +408,8 @@ class AgendamentoResource extends Resource
                     }
                 }),               
                     Tables\Actions\Action::make('export')
-                    ->label('Exportar para Excel')
-                    ->icon('heroicon-m-inbox')
+                    ->label('Exportar')
+                    ->icon('heroicon-o-arrow-up-tray')
                     ->action(function ($livewire) {
                         // Obtém os filtros aplicados na tabela
                         $filters = $livewire->tableFilters;
@@ -416,6 +417,16 @@ class AgendamentoResource extends Resource
                         // Exporta os dados filtrados
                         return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
                     }),
+                    Tables\Actions\Action::make('baixar_template')
+                    ->label('Baixar Template')
+                    ->icon('heroicon-o-cloud-arrow-down')
+                    ->action(function () {
+                        $filename = 'template_agendamentos.xlsx';
+                
+                        // Cria o arquivo em tempo real e faz o download
+                        return Excel::download(new \App\Exports\AgendamentosTemplateExport, $filename);
+                    }),
+                
             ])
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25); // Define 25 registros por página como padrão

@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use Filament\Tables\Actions\Action;
 use App\Exports\AfastamentoExport;
 use App\Imports\AfastamentoImport;
-use Filament\Actions\Notification;
 use Filament\Tables\Columns\TextInputColumn;
 use Illuminate\Support\Facades\Http;
 use Filament\Forms\Components\DatePicker;
@@ -19,6 +18,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Filament\Notifications\Notification;
 
 class AfastamentoResource extends Resource
 {
@@ -31,16 +33,6 @@ class AfastamentoResource extends Resource
     protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'afastamentos'; // Slug da URL
-
-    // Filament Update
-        public function updateComment($recordId, $comment)
-        {
-            $record = Afastamento::find($recordId);
-            if ($record) {
-                $record->comentario = $comment;
-                $record->save();
-            }
-        }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -307,7 +299,8 @@ class AfastamentoResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('importar')
-                ->label('Importar Afastamentos')
+                ->label('Importar')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->form([
                     Forms\Components\FileUpload::make('arquivo')
                         ->label('Arquivo Excel')
@@ -321,25 +314,25 @@ class AfastamentoResource extends Resource
                 ])
                 ->action(function ($data) {
                     try {
-                        // Obtém o caminho correto do arquivo sem incluir "public/"
-                        $filePath = storage_path('app/public/' . $data['arquivo']);
-            
-                        // Verifica se o arquivo realmente existe
+                        // Caminho relativo que o FileUpload já salvou (ex: uploads/arquivo.xlsx)
+                        $relativePath = $data['arquivo'];
+                
+                        // Monta o caminho completo com o Storage
+                        $filePath = Storage::disk('public')->path($relativePath);
+                
                         if (!file_exists($filePath)) {
                             throw new \Exception("Arquivo não encontrado: {$filePath}");
                         }
-            
-                        // Importa o arquivo Excel e passa o ID da empresa
-                        Excel::import(new AfastamentoImport ($data['empresa_id']), $filePath);
-            
-                        // Notificação de sucesso
+                
+                        Excel::import(new AfastamentoImport, $filePath);
+                
                         Notification::make()
                             ->title('Importação concluída')
                             ->success()
                             ->send();
                     } catch (\Exception $e) {
                         Log::error('Erro na importação: ' . $e->getMessage());
-            
+                
                         Notification::make()
                             ->title('Erro na importação')
                             ->body('Erro: ' . $e->getMessage())
@@ -347,16 +340,13 @@ class AfastamentoResource extends Resource
                             ->send();
                     }
                 }),               
-                    Tables\Actions\Action::make('export')
-                    ->label('Exportar para Excel')
-                    ->icon('heroicon-m-inbox')
-                    ->action(function ($livewire) {
-                        // Obtém os filtros aplicados na tabela
-                        $filters = $livewire->tableFilters;
-                
-                        // Exporta os dados filtrados
-                        return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
-                    }),
+            //Tables\Actions\Action::make('export')
+            //->label('Exportar')
+            //->icon('heroicon-o-arrow-up-tray')
+            //->action(function ($livewire) {
+            //$filters = $livewire->tableFilters;
+            //return Excel::download(new AgendamentosExport($filters), 'agendamentos_' . now()->format('Y-m-d') . '.xlsx');
+            //}),
             ])
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25) // Define 25 registros por página como padrão
