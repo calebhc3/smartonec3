@@ -37,10 +37,10 @@ protected function getCards(): array
     return [
         Card::make('Total de Afastamentos', $query->count()),
         Card::make('Afastados', $query->clone()->where('status_atual', 'afastado')->count())->color('danger'),
-        Card::make('Liberados ao retorno', $query->clone()->where('status_atual', 'liberado_ao_retorno')->count()),
+        Card::make('Liberados ao retorno', $query->clone()->where('status_atual', 'liberado ao retorno')->count()),
         Card::make('Desligados', $query->clone()->where('status_atual', 'desligado')->count()),
-        Card::make('Liberados com termo', $query->clone()->where('status_atual', 'liberado_com_termo')->count()),
-        Card::make('Liberados com restrição', $query->clone()->where('status_atual', 'liberado_com_restricao')->count()),
+        Card::make('Liberados com termo', $query->clone()->where('status_atual', 'liberado com o termo')->count()),
+        Card::make('Liberados com restrição', $query->clone()->where('status_atual', 'liberado com restricao')->count()),
     ];
 }
 

@@ -17,44 +17,43 @@ return new class extends Migration
             // Dados Iniciais
             $table->date('data_psc');
             $table->string('empresa');
-            $table->string('unidade');
             $table->string('cargo');
             $table->string('setor');
             $table->string('nome');
-            $table->date('data_notificacao');
-            $table->string('andamento_processo_shopee');
+            $table->date('data_notificacao')->nullable();
+            $table->string('andamento_processo_shopee')->nullable();
             $table->string('cpf')->unique();
             $table->date('data_nascimento');
-            $table->integer('idade');
+            $table->integer('idade')->nullable();
             $table->string('genero');
-            $table->string('codigo');
-            $table->date('data_admissao');
+            $table->string('codigo')->nullable();
+            $table->date('data_admissao')->nullable();
     
             // Controle Interno C3 Saúde
             $table->date('data_carta_dut_enviada_assinatura')->nullable();
             $table->date('data_carta_dut_recebida_assinada')->nullable();
             $table->date('data_carta_dut_enviada_colaborador')->nullable();
             $table->date('data_ultimo_dia_trabalhado')->nullable();
-            $table->boolean('condicao_abertura_cat')->default(false);
+            $table->boolean('condicao_abertura_cat')->default(false)->nullable();
             $table->string('cid')->nullable();
             $table->string('patologia')->nullable();
             $table->text('descricao_patologia')->nullable();
             $table->string('especie_beneficio_inss')->nullable();
-            $table->boolean('afastada_atividades')->default(false);
-            $table->boolean('afastados_inss')->default(false);
-            $table->boolean('limbo_previdenciario')->default(false);
+            $table->boolean('afastada_atividades')->default(false)->nullable();
+            $table->boolean('afastados_inss')->default(false)->nullable();
+            $table->boolean('limbo_previdenciario')->default(false)->nullable();
     
             // Dados Iniciais da Perícia
-            $table->boolean('alta_antecipada')->default(false);
+            $table->boolean('alta_antecipada')->default(false)->nullable(); 
             $table->date('entrada_pericia')->nullable();
             $table->date('data_pericia')->nullable();
             $table->string('tipo_pericia')->nullable();
-            $table->boolean('pericia_realizada')->default(false);
+            $table->boolean('pericia_realizada')->default(false)->nullable();
             $table->string('numero_beneficio')->nullable();
             $table->string('status_pericia')->nullable();
             $table->text('motivo')->nullable();
-            $table->boolean('nexo_tecnico')->default(false);
-            $table->boolean('contestacao')->default(false);
+            $table->boolean('nexo_tecnico')->default(false)->nullable();
+            $table->boolean('contestacao')->default(false)->nullable();
     
             // Notificação Shopee Retorno Colaborador
             $table->date('termino_previsto_beneficio')->nullable();

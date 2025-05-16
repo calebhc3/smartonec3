@@ -211,7 +211,6 @@ class PainelAfastamentos extends Page implements Tables\Contracts\HasTable
             AfastamentosHeaderOverview::make(),
         ];
     }
-    
 
     protected function isTablePaginationEnabled(): bool
     {

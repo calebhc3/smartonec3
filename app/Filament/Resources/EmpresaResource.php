@@ -51,14 +51,21 @@ class EmpresaResource extends Resource
                 Tables\Columns\TextColumn::make('nome')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('cnpj')->sortable(),
                 Tables\Columns\TextColumn::make('telefone')->sortable(),
-                Tables\Columns\TextColumn::make('email')->sortable(),
-                Tables\Columns\TextColumn::make('endereco')->limit(50),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 //
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('delete')
+                    ->action(function (array $records) {
+                        foreach ($records as $record) {
+                            $record->delete();
+                        }
+                    })
+                    ->requiresConfirmation(),
             ]);
     }
 
