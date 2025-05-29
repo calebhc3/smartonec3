@@ -72,7 +72,6 @@ class AgendamentoResource extends Resource
                     ->displayFormat('d/m/Y'),
     
                 Forms\Components\TimePicker::make('horario_exame')
-                    ->required()
                     ->label('Horário do Exame')
                     ->seconds(false),
     
@@ -92,15 +91,14 @@ class AgendamentoResource extends Resource
                     ->rule('regex:/^\(\d{2}\) \d{5}-\d{4}$/'),
     
                 Forms\Components\TextInput::make('doc_identificacao_rg')
-                    ->required()
                     ->label('RG')
                     ->mask('99.999.999-9')
                     ->rule('regex:/^\d{2}\.\d{3}\.\d{3}-\d$/'),
     
                 Forms\Components\TextInput::make('doc_identificacao_cpf')
-                    ->required()
                     ->label('CPF')
-                    ->mask('999.999.999-99'),
+                    ->mask('999.999.999-99')
+                    ->required(),
     
                 Forms\Components\DatePicker::make('data_nascimento')
                     ->required()
@@ -235,7 +233,7 @@ class AgendamentoResource extends Resource
                 ->colors([
                     'warning' => 'agendado',
                     'danger' => 'cancelado',
-                    'success' => 'ASO ok',
+                    'success' => 'ASO pendente',
                     'info' => 'ASO enviado',
                     'gray' => 'não compareceu',
                 ])
@@ -256,6 +254,7 @@ class AgendamentoResource extends Resource
                     'danger' => 'Atrasado',
                     'success' => 'No Prazo',
                 ]),
+            Tables\Columns\TextColumn::make('created_at')->dateTime('d/m/Y')->label('Data de Solicitação'),
             ])
             ->filters([
                 Tables\Filters\Filter::make('buscar')
@@ -275,6 +274,11 @@ class AgendamentoResource extends Resource
                     }
                     return $query;
                 }),
+                Filter::make('data_registro')
+                    ->form([Forms\Components\DatePicker::make('data_registro')->label('Data de Registro')])
+                    ->query(fn (Builder $query, array $data) => $query->when(!empty($data['data_registro']), function ($query) use ($data) {
+                        $query->whereDate('created_at', $data['data_registro']);
+                    })),
                 Filter::make('ano_registro')
                     ->form([Forms\Components\Select::make('ano')->options(self::getAnosRegistro())])
                     ->query(fn (Builder $query, array $data) => self::applyAnoRegistroFilter($query, $data)),
@@ -471,7 +475,7 @@ class AgendamentoResource extends Resource
         return [
             'agendado' => 'Agendado',
             'cancelado' => 'Cancelado',
-            'ASO ok' => 'ASO OK',
+            'ASO pendente' => 'ASO Pendente',
             'ASO enviado' => 'ASO Enviado',
             'não compareceu' => 'Não Compareceu',
         ];

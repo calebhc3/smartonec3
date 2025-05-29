@@ -68,7 +68,7 @@ class BuscaAsoResource extends Resource
             ->options([
                 'agendado' => 'Agendado',
                 'cancelado' => 'Cancelado',
-                'ASO ok' => 'ASO OK',
+                'ASO pendente' => 'ASO Pendente',
                 'ASO enviado' => 'ASO Enviado',
                 'não compareceu' => 'Não Compareceu',
             ])
@@ -120,6 +120,11 @@ class BuscaAsoResource extends Resource
                 }
                 return $query;
             }),
+            Filter::make('data_registro')
+                    ->form([Forms\Components\DatePicker::make('data_registro')->label('Data de Registro')])
+                    ->query(fn (Builder $query, array $data) => $query->when(!empty($data['data_registro']), function ($query) use ($data) {
+                        $query->whereDate('created_at', $data['data_registro']);
+                    })),
             // Filtro por Ano do Registro
             Filter::make('ano_registro')
                 ->form([
@@ -161,7 +166,10 @@ class BuscaAsoResource extends Resource
             // Filtro por Empresa
             SelectFilter::make('empresa_id')
                 ->relationship('empresa', 'nome')
-                ->label('Empresa'),
+                ->label('Empresa')
+                ->multiple()
+                ->searchable()
+                ->placeholder('Selecione uma empresa'),
         
             // Filtro por Tipo de Exame
             SelectFilter::make('tipo_exame')
@@ -180,7 +188,7 @@ class BuscaAsoResource extends Resource
                 ->options([
                     'agendado' => 'Agendado',
                     'cancelado' => 'Cancelado',
-                    'ASO ok' => 'ASO OK',
+                    'ASO pendente' => 'ASO Pendente',
                     'ASO enviado' => 'ASO Enviado',
                     'não compareceu' => 'Não Compareceu',
                 ])

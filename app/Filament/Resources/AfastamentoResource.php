@@ -21,6 +21,7 @@ use carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification;
+use Filament\Tables\Filters\SelectFilter;
 
 class AfastamentoResource extends Resource
 {
@@ -269,7 +270,32 @@ class AfastamentoResource extends Resource
                     ],
                 ]),
             ])
-            ->filters([])
+        ->filters([
+            SelectFilter::make('status_pericia')
+                ->label('Status da Perícia')
+                ->options([
+                    'deferido' => 'Deferido',
+                    'indeferido' => 'Indeferido',
+                    'em_analise' => 'Em Análise',
+                    'pericia_cancelada' => 'Perícia Cancelada',
+                    'em_agendamento' => 'Em Agendamento',
+                ]),
+
+            SelectFilter::make('status_atual')
+                ->label('Status Atual')
+                ->options([
+                    'recorrente' => 'Recorrente',
+                    'afastado' => 'Afastado',
+                    'liberado ao retorno' => 'Liberado ao Retorno',
+                    'desligado' => 'Desligado',
+                    'liberado com termo' => 'Liberado com Termo',
+                    'liberado com restricao' => 'Liberado com Restrição',
+                    'licenca maternidade' => 'Licença Maternidade',
+                    'pericia cancelada' => 'Perícia Cancelada',
+                    'rescisao indireta' => 'Rescisão Indireta',
+                    'falecimento' => 'Falecimento',
+                ]),
+        ])
             ->actions([
                 Action::make('prorrogar')
                     ->label('Prorrogar')

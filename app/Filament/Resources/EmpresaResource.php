@@ -39,7 +39,6 @@ class EmpresaResource extends Resource
                 TextInput::make('telefone')
                     ->label('Telefone')
                     ->tel()
-                    ->required()
                     ->mask('(99) 99999-9999'),
             ]);
     }

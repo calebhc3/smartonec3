@@ -16,7 +16,6 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
         $ontem = Carbon::yesterday()->toDateString(); // Obtém a data de ontem no formato correto
 
         // Consulta geral de agendamentos no período
-        $totalAgendamentos = Agendamento::whereBetween('data_exame', [$inicioPeriodo, $hoje])->count();
 
         // Filtra os agendamentos para calcular a situação
         $agendamentos = Agendamento::whereBetween('data_exame', [$inicioPeriodo, $hoje])->get();
@@ -32,13 +31,8 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
 
         // Outras métricas
         $examesEnvioAsoPendente = Agendamento::where('status', 'ASO ok')->count();
+        
         $aguardandoRealizacao = Agendamento::where('status', 'agendado')->count();
-
-        $examesReagendamento = \App\Models\Agendamento::where(function ($query) {
-            $query->where('status', 'Cancelado')
-                  ->orWhere('status', 'Nao Compareceu')
-                  ->orWhereDate('data_exame', '<', now());
-        })->count();
 
         $examesPendentes = Agendamento::whereDate('data_exame', $ontem)
         ->whereNotIn('status', ['ASO ok', 'ASO enviado'])
@@ -46,9 +40,11 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
 
         $asosTerceiraFalta = Agendamento::where('nao_compareceu_count', 3)->count();
 
+        $examesReagendamento = Agendamento::where('status', 'nao compareceu')->count();
+
         return [
-            Card::make('Total de Agendamentos', $totalAgendamentos)
-            ->description('Agendamentos nos últimos 30 dias')
+            Card::make('Total de Agendamentos', Agendamento::count())
+            ->description('Agendamentos feitos')
             ->color('primary')
             ->icon('heroicon-o-calendar')
             ->url('/admin/agendamentos'),
@@ -86,29 +82,45 @@ class AgendamentosStatsWidget extends StatsOverviewWidget
             ->color('danger')
             ->icon('heroicon-o-arrow-path')
             ->chart([3, 5, 7, 6, 4]) // Customize o gráfico conforme necessário
-            ->url('/admin/agendamentos?tableFilters[status][value]=Cancelado&tableFilters[status][value]=Nao Compareceu&tableFilters[data_exame][before]=today'),   
+            ->url('/admin/agendamentos?tableFilters[status][value]=Nao Compareceu&tableFilters[data_exame][before]=today'), 
+
         Card::make('ASOs na Terceira Falta', $asosTerceiraFalta)
             ->description('ASOs com três faltas')
             ->color('danger')
             ->icon('heroicon-o-exclamation-triangle')
             ->chart([2, 3, 1, 4, 5])
             ->url('/admin/agendamentos?tableFilters[status][value]=não+compareceu&tableFilters[nao_compareceu_count][value]=3'),
+    Card::make('Exames registrados hoje', Agendamento::whereDate('created_at', Carbon::today())->count())
+        ->description('Registros de exames feitos hoje')
+        ->color('primary')
+        ->icon('heroicon-o-calendar')
+        ->chart([1, 2, 3, 4, 5])
+        ->url('/admin/agendamentos?tableFilters[data_registro][data_registro]=' . Carbon::today()->toDateString())
+
         ];
     }
 
     /**
      * Calcula a situação do agendamento.
      */
-    private function getSituacaoAtrasado($agendamento): string
+    private static function getSituacaoAtrasado($record): string
     {
-        $dataExame = Carbon::parse($agendamento->data_exame);
+        $dataExame = Carbon::parse($record->data_exame);
         $hoje = Carbon::today();
-
+    
+        // Definição do prazo conforme o SLA
+        $prazo = match ($record->sla) {
+            'clinico' => 1,
+            'clinico_complementar' => 3,
+            'clinico_acidos' => 10,
+            default => 0,
+        };
+    
         // Verifica se o exame está atrasado
-        if (in_array($agendamento->status, ['agendado', 'não compareceu']) && $dataExame->isBefore($hoje)) {
+        if (in_array($record->status, ['agendado', 'não compareceu']) && $dataExame->isBefore($hoje)) {
             return 'Atrasado';
         }
-
+    
         return 'No Prazo';
     }
 

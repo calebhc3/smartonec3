@@ -100,6 +100,7 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
                 'whatsapp_solicitante' => $agendamento->whatsapp_solicitante,
                 'data_devolutiva' => $agendamento->data_devolutiva ? \Carbon\Carbon::parse($agendamento->data_devolutiva)->format('d/m/Y') : 'N/A',
                 'clinica_agendada' => $agendamento->clinica_agendada,
+                'created_at' => $agendamento->created_at ? \Carbon\Carbon::parse($agendamento->created_at)->format('d/m/Y H:i') : 'N/A', // Inclui hora
             ];
         });
     }
@@ -129,11 +130,11 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
             'Usuário Responsável',
             'Data da Solicitação',
             'Nome do Solicitante',
-            'Origem do Agendamento',
             'E-mail do Solicitante',
             'WhatsApp do Solicitante',
             'Data da Devolutiva',
             'Clínica Agendada',
+            'Data de Criação',
         ];
     }
 
@@ -204,30 +205,30 @@ class AgendamentosExport implements FromCollection, WithHeadings, WithStyles, Wi
             'A' => 5, // Empresa
             'B' => 25, // CNPJ da Unidade
             'C' => 20, // Nome da Unidade
-            'D' => 30, // Cidade de Atendimento
+            'D' => 45, // Cidade de Atendimento
             'E' => 20,  // Estado de Atendimento
             'F' => 5, // Data do Exame
             'G' => 15, // Horário do Exame
             'H' => 20, // Nome do Funcionário
             'I' => 15, // Contato WhatsApp
-            'J' => 20, // RG
+            'J' => 30, // RG
             'K' => 20, // CPF
             'L' => 15, // Data de Nascimento
             'M' => 15, // Data de Admissão
             'N' => 20, // Função
-            'O' => 20, // Setor
-            'P' => 15, // Tipo de Exame
+            'O' => 25, // Setor
+            'P' => 65, // Tipo de Exame
             'Q' => 15, // Status
             'R' => 20, // SLA
             'S' => 20, // Usuário Responsável
             'T' => 20, // Data da Solicitação
             'U' => 20, // Origem do Agendamento
             'V' => 25, // Nome do Solicitante
-            'W' => 15, // E-mail do Solicitante
+            'W' => 45, // E-mail do Solicitante
             'X' => 30, // WhatsApp do Solicitante
             'Y' => 20, // Data da Devolutiva
-            'Z' => 25, // Clínica Agendada
-            'AA' => 25, // Clínica Agendada
+            'Z' => 55, // Clínica Agendada
+            'AA' => 20, // Clínica Agendada
         ];
     }
     
