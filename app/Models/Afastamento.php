@@ -10,7 +10,7 @@ class Afastamento extends Model
     use HasFactory;
 
     protected $fillable = [
-        'data_psc', 'empresa', 'cnpj_unidade', 'nome_unidade', 'cargo', 'setor', 'nome', 'data_notificacao', 'andamento_processo_shopee', 'cpf',
+        'data_psc', 'empresa', 'nome_unidade', 'cargo', 'setor', 'nome', 'data_notificacao', 'andamento_processo_shopee', 'cpf',
         'data_nascimento', 'idade', 'genero', 'codigo', 'data_admissao',
         'data_carta_dut_enviada_assinatura', 'data_carta_dut_recebida_assinada', 'data_carta_dut_enviada_colaborador',
         'data_ultimo_dia_trabalhado', 'condicao_abertura_cat', 'cid', 'patologia', 'descricao_patologia',

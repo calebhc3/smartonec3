@@ -332,10 +332,6 @@ class AfastamentoResource extends Resource
                         ->label('Arquivo Excel')
                         ->disk('public') // Salva em storage/app/public
                         ->directory('uploads') // Salva os arquivos dentro de storage/app/public/uploads
-                        ->acceptedFileTypes([
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'application/vnd.ms-excel'
-                        ]) // Apenas arquivos Excel
                         ->required(),
                 ])
                 ->action(function ($data) {

@@ -37,7 +37,6 @@ class AgendamentosImport implements ToModel, WithHeadingRow
                         $fail('O campo data exame deve estar no formato dd/mm/YYYY');
                     }
                 }],
-                'horario_exame' => 'required|date_format:H:i:s',
                 'nome_funcionario' => 'required|string|max:255',
                 'doc_identificacao_cpf' => 'required|string|max:14',
                 'tipo_exame' => 'required|in:' . implode(',', array_keys(self::getTiposExame())),

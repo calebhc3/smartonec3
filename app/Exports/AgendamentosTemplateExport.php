@@ -38,11 +38,9 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
             'Setor',
             'Tipo de Exame',
             'Status',
-            'SLA',
             'Usuário Responsável',
             'Data da Solicitação',
             'Nome do Solicitante',
-            'Origem do Agendamento',
             'E-mail do Solicitante',
             'WhatsApp do Solicitante',
             'Data da Devolutiva',
@@ -53,7 +51,7 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
     public function styles(Worksheet $sheet)
     {
         // Aplica estilo ao cabeçalho
-        $sheet->getStyle('A1:Z1')->applyFromArray([
+        $sheet->getStyle('A1:X1')->applyFromArray([
             'font' => [
                 'bold' => true, // Negrito
                 'color' => ['rgb' => 'FFFFFF'], // Cor da fonte (branco)
@@ -74,7 +72,7 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
         ]);
     
         // Aplica estilo às linhas intercaladas (zebra stripes)
-        $sheet->getStyle('A2:Z' . ($sheet->getHighestRow()))
+        $sheet->getStyle('A2:X' . ($sheet->getHighestRow()))
             ->applyFromArray([
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -84,7 +82,7 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
     
         // Aplica estilo às linhas pares (branco)
         for ($i = 2; $i <= $sheet->getHighestRow(); $i += 2) {
-            $sheet->getStyle('A' . $i . ':Z' . $i)
+            $sheet->getStyle('A' . $i . ':X' . $i)
                 ->applyFromArray([
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -94,7 +92,7 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
         }
     
         // Aplica bordas a todas as células de A até AA
-        $sheet->getStyle('A1:Z' . $sheet->getHighestRow())
+        $sheet->getStyle('A1:X' . $sheet->getHighestRow())
             ->applyFromArray([
                 'borders' => [
                     'allBorders' => [
@@ -105,7 +103,7 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
             ]);
     
         // Centraliza o texto em todas as células de A até AA
-        $sheet->getStyle('A1:Z' . $sheet->getHighestRow())
+        $sheet->getStyle('A1:X' . $sheet->getHighestRow())
             ->getAlignment()
             ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     }
@@ -138,8 +136,6 @@ class AgendamentosTemplateExport implements WithHeadings, WithStyles, WithColumn
             'V' => 25, // Nome do Solicitante
             'W' => 15, // E-mail do Solicitante
             'X' => 30, // WhatsApp do Solicitante
-            'Y' => 20, // Data da Devolutiva
-            'Z' => 25, // Clínica Agendada
         ];
     }
     
