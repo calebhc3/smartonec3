@@ -24,7 +24,6 @@ class PainelProdutividade extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            GerenciamentoUsuariosWidget::class,
             UltimasAtividadesWidget::class,
             ExclusoesRegistrosWidget::class,
         ];

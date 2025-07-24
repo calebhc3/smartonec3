@@ -38,7 +38,7 @@ class AgendamentosImport implements ToModel, WithHeadingRow
                     }
                 }],
                 'nome_funcionario' => 'required|string|max:255',
-                'doc_identificacao_cpf' => 'required|string|max:14',
+                'doc_identificacao_cpf' => 'required|max:14',
                 'tipo_exame' => 'required|in:' . implode(',', array_keys(self::getTiposExame())),
             ], [
                 'required' => 'O campo :attribute é obrigatório',
@@ -64,7 +64,7 @@ class AgendamentosImport implements ToModel, WithHeadingRow
             return new Agendamento([
                 'empresa_id' => $this->empresaSelecionada,
                 'cnpj_unidade' => $processedRow['cnpj_unidade'] ?? null,
-                'nome_unidade' => $this->getNomeUnidadePorCnpj($processedRow['cnpj_unidade'] ?? ''),
+                'nome_unidade' => $processedRow['nome_unidade'] ?? null,
                 'estado_atendimento' => $processedRow['estado_atendimento'],
                 'cidade_atendimento' => $processedRow['cidade_atendimento'],
                 'data_exame' => $dataExame,
@@ -218,30 +218,6 @@ class AgendamentosImport implements ToModel, WithHeadingRow
             return null;
         }
     }
-        private function getNomeUnidadePorCnpj(string $cnpjUnidade): string
-        {
-            $cnpjUnidade = preg_replace('/\D/', '', $cnpjUnidade);
-            if (!preg_match('/^\d{14}$/', $cnpjUnidade)) {
-                Log::warning("CNPJ inválido: {$cnpjUnidade}");
-                return 'CNPJ inválido';
-            }
-
-            $token = env('RECEITA_WS_TOKEN');
-            $url = "https://www.receitaws.com.br/v1/cnpj/{$cnpjUnidade}?token={$token}";
-            $client = new Client(['timeout' => 5, 'verify' => false]);
-
-            try {
-                $response = $client->get($url);
-                $data = json_decode($response->getBody()->getContents(), true);
-                return $data['nome'] ?? 'Nome não encontrado';
-            } catch (RequestException $e) {
-                Log::error("Erro API ({$cnpjUnidade}): " . $e->getMessage());
-                return 'Erro API';
-            } catch (\Exception $e) {
-                Log::error("Erro inesperado ({$cnpjUnidade}): " . $e->getMessage());
-                return 'Erro inesperado';
-            }
-        }
 
     // Função para obter estados brasileiros
     private static function getEstadosBrasileiros(): array

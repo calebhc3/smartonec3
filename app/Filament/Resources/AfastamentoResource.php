@@ -44,39 +44,19 @@ class AfastamentoResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('nome')->required(),
                         Forms\Components\TextInput::make('cpf')->required(),
-                        DatePicker::make('data_nascimento')
-                        ->label('Data de Nascimento')
-                        ->reactive()
-                        ->afterStateUpdated(function (Carbon|string|null $state, Set $set) {
-                            if (!$state) {
-                                $set('idade', null);
-                                return;
-                            }
-                    
-                            $dataNascimento = Carbon::parse($state);
-                            $idade = $dataNascimento->age;
-                    
-                            $set('idade', $idade);
-                        }),
-                    
+                DatePicker::make('data_nascimento')
+                    ->label('Data de Nascimento')
+                    ->displayFormat('d/m/Y') // Exibe no formato brasileiro
+                    ->format('Y-m-d'), // Salva no formato aceito pelo MySQL
                     TextInput::make('idade')
                         ->label('Idade')
-                        ->numeric()
-                        ->disabled(), // impede edição manual, já que é calculado automaticamente
+                        ->numeric(),
                         Forms\Components\TextInput::make('cnpj_unidade')
                         ->label('CNPJ da Unidade')
                         ->required()
-                        ->mask('99.999.999/9999-99')
-                        ->live(debounce: 500)
-                        ->afterStateUpdated(function ($state, callable $set) {
-                            if (strlen(preg_replace('/\D/', '', $state)) === 14) {
-                                $set('nome_unidade', self::buscarNomeUnidade($state));
-                            }
-                        }),
-    
+                        ->mask('99.999.999/9999-99'), 
                         Forms\Components\TextInput::make('nome_unidade')
-                        ->label('Nome da Unidade')
-                        ->readonly(),    
+                        ->label('Nome da Unidade'),    
                         Forms\Components\DatePicker::make('data_admissao'),
                         Forms\Components\TextInput::make('cargo'),
                         Forms\Components\TextInput::make('setor'),
@@ -302,11 +282,6 @@ class AfastamentoResource extends Resource
                     ->icon('heroicon-o-plus-circle')
                     ->modalHeading('Prorrogar Afastamento')
                     ->modalSubmitActionLabel('Confirmar')
-                    ->form([
-                        Forms\Components\DatePicker::make('nova_data')
-                            ->label('Nova data de término do benefício')
-                            ->required(),
-                    ])
                     ->action(function (array $data, \App\Models\Afastamento $record): void {
                         // Atualiza o registro atual como prorrogado
                         $record->update([
@@ -314,10 +289,7 @@ class AfastamentoResource extends Resource
                         ]);
             
                         // Clona o afastamento com a nova data
-                        $novoAfastamento = $record->replicate([
-                            'termino_previsto_beneficio' => $data['nova_data'],
-                        ]);
-                        $novoAfastamento->termino_previsto_beneficio = $data['nova_data'];
+                        $novoAfastamento = $record->replicate();
                         $novoAfastamento->is_prorrogado = false;
                         $novoAfastamento->save();
                     })
@@ -375,20 +347,6 @@ class AfastamentoResource extends Resource
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
     }
 
-    public static function buscarNomeUnidade(string $cnpj): ?string
-    {
-        $token = '0e9a9921cdcaf47915ada588639404097eef2785052c31f9b3f1f5456ffec09f'; // Substitua pelo seu token da ReceitaWS
-
-        $response = Http::withoutVerifying()->get("https://www.receitaws.com.br/v1/cnpj/" . preg_replace('/\D/', '', $cnpj), [
-            'token' => $token,
-        ]);
-
-        if ($response->successful()) {
-            return $response->json()['nome'] ?? 'Não encontrado';
-        }
-
-        return 'Erro ao buscar CNPJ';
-    }
 
     public static function getPages(): array
     {

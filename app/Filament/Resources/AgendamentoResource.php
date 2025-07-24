@@ -103,9 +103,8 @@ class AgendamentoResource extends Resource
                 Forms\Components\DatePicker::make('data_nascimento')
                     ->required()
                     ->label('Data de Nascimento')
-                    ->displayFormat('d/m/Y')
-                    ->maxDate(now()->subYears(18)), // Apenas maiores de idade
-    
+                    ->displayFormat('d/m/Y'),
+                    
                 Forms\Components\DatePicker::make('data_admissao')
                     ->label('Data de Admissão')
                     ->displayFormat('d/m/Y')
